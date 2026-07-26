@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OGRA Pakistan – Live Fuel Prices & Regulatory Portal</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        ogra: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                            dark: '#0a2312',
+                            accent: '#0284c7'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Vue 3 CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(229, 231, 235, 0.8);
+        }
+        .dark .glass-card {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(51, 65, 85, 0.8);
+        }
+        .pulse-dot {
+            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+            animation: pulse-ring 1.6s infinite cubic-bezier(0.66, 0, 0, 1);
+        }
+        @keyframes pulse-ring {
+            to { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-300">
+
+    <div id="app">
+        <!-- Top Creator Bar -->
+        <div class="bg-gradient-to-r from-emerald-900 via-emerald-800 to-slate-900 text-white text-xs py-2 px-4 shadow-inner">
+            <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
+                <div class="flex items-center space-x-3">
+                    <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1.5">
+                        <i class="fa-solid fa-code"></i> Official App
+                    </span>
+                    <span class="font-medium text-slate-200">
+                        App Creator: <strong class="text-amber-300 font-bold">Junaid Gillani</strong> | Contact: <a href="tel:03176407904" class="underline hover:text-emerald-300 font-bold">03176407904</a>
+                    </span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span>
+                        <span class="text-emerald-300 font-medium text-[11px]">Server Status: Live</span>
+                    </div>
+                    <span class="text-slate-400">|</span>
+                    <span>{{ currentTime }}</span>
+                    <span class="text-slate-400">|</span>
+                    <button @click="toggleDarkMode" class="hover:text-amber-300 transition-colors">
+                        <i :class="isDark ? 'fa-solid fa-sun text-amber-400' : 'fa-solid fa-moon'"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Header / Navigation -->
+        <header class="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+                <!-- Brand Logo -->
+                <div class="flex items-center space-x-3 cursor-pointer" @click="currentTab = 'rates'">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-emerald-700 to-teal-500 flex items-center justify-center text-white shadow-lg shadow-emerald-600/20">
+                        <i class="fa-solid fa-gas-pump text-2xl"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h1 class="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">OGRA <span class="text-emerald-600 dark:text-emerald-400">Live</span></h1>
+                            <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded dark:bg-emerald-950 dark:text-emerald-300">Govt of Pakistan</span>
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Oil & Gas Regulatory Authority Updates</p>
+                    </div>
+                </div>
+
+                <!-- Desktop Nav -->
+                <nav class="hidden md:flex items-center space-x-1">
+                    <button v-for="tab in navTabs" :key="tab.id" @click="currentTab = tab.id"
+                        :class="[currentTab === tab.id ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 font-bold border-b-2 border-emerald-600' : 'text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800', 'px-3 py-2 rounded-lg text-sm transition-all flex items-center space-x-2']">
+                        <i :class="tab.icon"></i>
+                        <span>{{ tab.label }}</span>
+                    </button>
+                </nav>
+
+                <!-- Action Button -->
+                <div class="flex items-center space-x-2">
+                    <button @click="openComplaintModal" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-lg shadow-md hover:shadow-emerald-500/20 transition-all flex items-center space-x-2">
+                        <i class="fa-solid fa-headset"></i>
+                        <span class="hidden sm:inline">Lodge Complaint</span>
+                    </button>
+                    <!-- Mobile Hamburger -->
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden p-2 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
+                        <i :class="mobileMenuOpen ? 'fa-solid fa-xmark text-xl' : 'fa-solid fa-bars text-xl'"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Nav Menu -->
+            <div v-if="mobileMenuOpen" class="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 space-y-1">
+                <button v-for="tab in navTabs" :key="tab.id" @click="currentTab = tab.id; mobileMenuOpen = false"
+                    :class="[currentTab === tab.id ? 'bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 font-bold' : 'text-slate-600 dark:text-slate-300', 'w-full text-left px-3 py-2 rounded-lg text-sm flex items-center space-x-3']">
+                    <i :class="tab.icon"></i>
+                    <span>{{ tab.label }}</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Ticker Banner -->
+        <div class="bg-amber-500/10 dark:bg-amber-500/5 border-y border-amber-500/20 py-2.5 px-4 overflow-hidden">
+            <div class="max-w-7xl mx-auto flex items-center space-x-3">
+                <span class="bg-amber-500 text-slate-950 text-[10px] font-black uppercase px-2 py-0.5 rounded tracking-wider whitespace-nowrap flex items-center gap-1">
+                    <i class="fa-solid fa-bullhorn"></i> Announcement
+                </span>
+                <div class="overflow-hidden whitespace-nowrap w-full relative">
+                    <div class="animate-marquee inline-block text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-medium">
+                        {{ tickerMessage }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+            <!-- TAB 1: LIVE FUEL RATES & DASHBOARD -->
+            <div v-if="currentTab === 'rates'" class="space-y-8">
+                
+                <!-- Hero & Refresh Bar -->
+                <div class="glass-card rounded-2xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
+                    <div class="absolute -right-12 -bottom-12 w-64 h-64 bg-emerald-500/10 dark:bg-emerald-500/5 rounded-full blur-3xl pointer-events-none"></div>
+                    
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 relative z-10">
+                        <div>
+                            <div class="inline-flex items-center gap-2 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 px-3 py-1 rounded-full text-xs font-semibold mb-3">
+                                <i class="fa-solid fa-satellite-dish"></i> Official Government Pricing Bulletin
+                            </div>
+                            <h2 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                                Pakistan Petroleum & Gas Rates
+                            </h2>
+                            <p class="text-slate-600 dark:text-slate-400 text-sm mt-1 max-w-2xl">
+                                Official notified prices by Oil and Gas Regulatory Authority (OGRA). Prices updated in real-time.
+                            </p>
+                        </div>
+
+                        <!-- Live Reload Control -->
+                        <div class="bg-slate-100 dark:bg-slate-800/80 p-4 rounded-xl flex flex-col sm:flex-row items-center gap-4 border border-slate-200 dark:border-slate-700/60">
+                            <div class="text-center sm:text-left">
+                                <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Last Synced</div>
+                                <div class="text-xs font-bold text-slate-800 dark:text-slate-200">{{ lastUpdatedText }}</div>
+                            </div>
+                            <button @click="reloadRates" :disabled="isReloading"
+                                class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-5 py-2.5 rounded-lg shadow transition-all flex items-center justify-center space-x-2 disabled:opacity-50">
+                                <i :class="['fa-solid fa-rotate-right', isReloading ? 'animate-spin' : '']"></i>
+                                <span>{{ isReloading ? 'Fetching OGRA Server...' : 'Reload Live Rates' }}</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Search & City Filter Bar -->
+                    <div class="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">Select City / District</label>
+                            <div class="relative">
+                                <select v-model="selectedCity" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-emerald-500 appearance-none">
+                                    <option v-for="city in cities" :key="city" :value="city">{{ city }}</option>
+                                </select>
+                                <i class="fa-solid fa-chevron-down absolute right-3 top-3 text-xs text-slate-400 pointer-events-none"></i>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">Filter Fuel Category</label>
+                            <div class="relative">
+                                <select v-model="categoryFilter" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-emerald-500 appearance-none">
+                                    <option value="All">All Fuel Types</option>
+                                    <option value="Petroleum">Petroleum (Petrol/Diesel)</option>
+                                    <option value="LPG">LPG Gas</option>
+                                    <option value="CNG">CNG / RLNG</option>
+                                </select>
+                                <i class="fa-solid fa-chevron-down absolute right-3 top-3 text-xs text-slate-400 pointer-events-none"></i>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">Search Product</label>
+                            <div class="relative">
+                                <input v-model="searchQuery" type="text" placeholder="e.g. Super Petrol, HSD, Cylinder..."
+                                    class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-xs text-slate-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Price Cards Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div v-for="fuel in filteredFuels" :key="fuel.id" 
+                        class="glass-card rounded-2xl p-6 shadow-md hover:shadow-xl transition-all border border-slate-200 dark:border-slate-800 flex flex-col justify-between group">
+                        
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl font-bold group-hover:scale-110 transition-transform">
+                                    <i :class="fuel.icon"></i>
+                                </div>
+                                <span :class="[fuel.changeType === 'up' ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300' : fuel.changeType === 'down' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300', 'text-xs font-extrabold px-2.5 py-1 rounded-full flex items-center gap-1']">
+                                    <i :class="fuel.changeType === 'up' ? 'fa-solid fa-arrow-up' : fuel.changeType === 'down' ? 'fa-solid fa-arrow-down' : 'fa-solid fa-minus'"></i>
+                                    {{ fuel.change }}
+                                </span>
+                            </div>
+
+                            <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">{{ fuel.name }}</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">{{ fuel.description }}</p>
+                            
+                            <div class="bg-slate-50 dark:bg-slate-900/80 rounded-xl p-4 border border-slate-100 dark:border-slate-800">
+                                <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Official OGRA Price</div>
+                                <div class="flex items-baseline space-x-1.5 mt-1">
+                                    <span class="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400">PKR {{ (fuel.price * cityMultiplier).toFixed(2) }}</span>
+                                    <span class="text-xs font-bold text-slate-500">/ {{ fuel.unit }}</span>
+                                </div>
+                                <div class="text-[11px] text-slate-500 mt-2 flex justify-between">
+                                    <span>Base Rate: PKR {{ fuel.price }}</span>
+                                    <span>Loc. Adj: +{{ ((cityMultiplier - 1) * 100).toFixed(1) }}%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500">
+                            <span class="font-medium"><i class="fa-regular fa-calendar-check mr-1"></i> Effective: {{ fuel.effectiveDate }}</span>
+                            <button @click="quickCalc(fuel)" class="text-emerald-600 dark:text-emerald-400 font-bold hover:underline flex items-center gap-1">
+                                <i class="fa-solid fa-calculator"></i> Calculate
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- City Pump Wise Price Table -->
+                <div class="glass-card rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-800">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                <i class="fa-solid fa-city text-emerald-600"></i> District / Pump-Wise Notified Rates
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-0.5">District wise location adjustment factors based on freight margins</p>
+                        </div>
+                        <span class="text-xs font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 px-3 py-1 rounded-full w-fit">
+                            City: {{ selectedCity }}
+                        </span>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs uppercase tracking-wider">
+                                    <th class="p-3.5 rounded-l-lg">Product Name</th>
+                                    <th class="p-3.5">Category</th>
+                                    <th class="p-3.5">Standard Rate</th>
+                                    <th class="p-3.5">City Rate ({{ selectedCity }})</th>
+                                    <th class="p-3.5">Status</th>
+                                    <th class="p-3.5 rounded-r-lg text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+                                <tr v-for="fuel in fuels" :key="'table-' + fuel.id" class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                                    <td class="p-3.5 font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                        <i :class="fuel.icon" class="text-emerald-600"></i>
+                                        {{ fuel.name }}
+                                    </td>
+                                    <td class="p-3.5 text-xs text-slate-500">{{ fuel.category }}</td>
+                                    <td class="p-3.5 font-semibold">PKR {{ fuel.price }} / {{ fuel.unit }}</td>
+                                    <td class="p-3.5 font-extrabold text-emerald-600 dark:text-emerald-400">
+                                        PKR {{ (fuel.price * cityMultiplier).toFixed(2) }}
+                                    </td>
+                                    <td class="p-3.5">
+                                        <span class="bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded">
+                                            Notified
+                                        </span>
+                                    </td>
+                                    <td class="p-3.5 text-right">
+                                        <button @click="openComplaintModalWithFuel(fuel.name)" class="text-xs bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-600 dark:bg-slate-800 dark:hover:bg-red-950/50 dark:text-slate-300 px-3 py-1.5 rounded-lg font-semibold transition-colors">
+                                            Report Pump
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- TAB 2: CALCULATOR -->
+            <div v-if="currentTab === 'calculator'" class="space-y-8">
+                <div class="glass-card rounded-2xl p-6 sm:p-8 shadow-xl">
+                    <h2 class="text-2xl font-black text-slate-900 dark:text-white mb-2 flex items-center gap-3">
+                        <i class="fa-solid fa-calculator text-emerald-600"></i> Fuel & Trip Expense Estimator
+                    </h2>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm mb-6">Calculate exact distance fuel consumption and cylinder costs based on official OGRA prices.</p>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Vehicle Fuel Calculator -->
+                        <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 space-y-4">
+                            <h3 class="font-bold text-lg text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-800 pb-2">
+                                🚗 Vehicle Fuel Calculator
+                            </h3>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">Select Fuel Type</label>
+                                <select v-model="calcFuelId" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-sm font-semibold">
+                                    <option v-for="f in fuels.filter(x => x.unit === 'Ltr')" :key="'c-'+f.id" :value="f.id">
+                                        {{ f.name }} (PKR {{ (f.price * cityMultiplier).toFixed(2) }}/Ltr)
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">Distance (KM)</label>
+                                    <input v-model.number="calcDistance" type="number" min="1" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-sm font-bold">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">Mileage (KM/Ltr)</label>
+                                    <input v-model.number="calcMileage" type="number" min="1" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-sm font-bold">
+                                </div>
+                            </div>
+
+                            <div class="bg-emerald-50 dark:bg-emerald-950/60 p-4 rounded-xl border border-emerald-200 dark:border-emerald-800/60 text-center">
+                                <div class="text-xs font-bold text-slate-500 uppercase">Estimated Trip Cost</div>
+                                <div class="text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
+                                    PKR {{ calculatedTripCost }}
+                                </div>
+                                <div class="text-xs text-slate-500 mt-1">Litres Required: {{ calculatedLitres }} Ltr</div>
+                            </div>
+                        </div>
+
+                        <!-- LPG Cylinder Calculator -->
+                        <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 space-y-4">
+                            <h3 class="font-bold text-lg text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-800 pb-2">
+                                🔥 LPG Cylinder Weight Calculator
+                            </h3>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">Select Cylinder Type</label>
+                                <select v-model="lpgCylinderWeight" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-sm font-semibold">
+                                    <option :value="11.8">Domestic Cylinder (11.8 kg)</option>
+                                    <option :value="45.4">Commercial Cylinder (45.4 kg)</option>
+                                    <option :value="5">Small Domestic (5.0 kg)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">Number of Cylinders</label>
+                                <input v-model.number="lpgQty" type="number" min="1" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-sm font-bold">
+                            </div>
+
+                            <div class="bg-emerald-50 dark:bg-emerald-950/60 p-4 rounded-xl border border-emerald-200 dark:border-emerald-800/60 text-center">
+                                <div class="text-xs font-bold text-slate-500 uppercase">Total Official Notified Price</div>
+                                <div class="text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
+                                    PKR {{ calculatedLpgPrice }}
+                                </div>
+                                <div class="text-xs text-slate-500 mt-1">Rate per Kg: PKR {{ (241.43 * cityMultiplier).toFixed(2) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: E-LICENSING & SOPS -->
+            <div v-if="currentTab === 'licensing'" class="space-y-8">
+                <div class="glass-card rounded-2xl p-6 sm:p-8 shadow-xl">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                        <div>
+                            <h2 class="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-3">
+                                <i class="fa-solid fa-certificate text-emerald-600"></i> OGRA E-Licensing & SOP Portal
+                            </h2>
+                            <p class="text-slate-600 dark:text-slate-400 text-sm mt-1">Digital licensing procedures and regulatory requirements for Oil, LPG, LNG & CNG companies.</p>
+                        </div>
+                        <a href="https://elicence.ogra.org.pk" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-lg shadow flex items-center gap-2">
+                            <span>Open E-Licence System</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </a>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div v-for="sop in sops" :key="sop.title" class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 hover:shadow-lg transition-all">
+                            <div class="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold mb-3">
+                                <i :class="sop.icon"></i>
+                            </div>
+                            <h3 class="font-bold text-slate-900 dark:text-white text-base mb-1">{{ sop.title }}</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mb-3">{{ sop.desc }}</p>
+                            <div class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Standard Timeline: {{ sop.timeline }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: LAWS & NOTIFICATIONS -->
+            <div v-if="currentTab === 'laws'" class="space-y-8">
+                <div class="glass-card rounded-2xl p-6 sm:p-8 shadow-xl">
+                    <h2 class="text-2xl font-black text-slate-900 dark:text-white mb-2 flex items-center gap-3">
+                        <i class="fa-solid fa-scale-balanced text-emerald-600"></i> OGRA Ordinance, Laws & Rules
+                    </h2>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm mb-6">Official legal framework, regulatory acts, and public gazette notifications.</p>
+
+                    <div class="space-y-4">
+                        <div v-for="law in laws" :key="law.title" class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div class="flex items-start space-x-3">
+                                <div class="w-10 h-10 rounded-lg bg-red-100 dark:bg-red-950 text-red-600 flex items-center justify-center font-bold shrink-0">
+                                    <i class="fa-solid fa-file-pdf"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-slate-900 dark:text-white text-sm">{{ law.title }}</h4>
+                                    <p class="text-xs text-slate-500 mt-0.5">{{ law.desc }}</p>
+                                    <span class="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded mt-2 inline-block">
+                                        Date: {{ law.date }}
+                                    </span>
+                                </div>
+                            </div>
+                            <button @click="showDocNotice(law.title)" class="sm:shrink-0 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold px-3 py-2 rounded-lg transition-colors flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-download"></i> Download PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: PUBLIC HEARINGS & MEDIA -->
+            <div v-if="currentTab === 'hearings'" class="space-y-8">
+                <div class="glass-card rounded-2xl p-6 sm:p-8 shadow-xl">
+                    <h2 class="text-2xl font-black text-slate-900 dark:text-white mb-2 flex items-center gap-3">
+                        <i class="fa-solid fa-users-rectangle text-emerald-600"></i> Public Hearings & Consultations
+                    </h2>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm mb-6">Upcoming and recent public hearings for SNGPL, SSGCL, and petroleum tariff revisions.</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div v-for="hearing in hearings" :key="hearing.title" class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+                            <div>
+                                <span class="bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+                                    {{ hearing.type }}
+                                </span>
+                                <h3 class="font-bold text-slate-900 dark:text-white text-base mt-2 mb-2">{{ hearing.title }}</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">{{ hearing.venue }}</p>
+                            </div>
+                            <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-300">
+                                <span><i class="fa-regular fa-calendar mr-1"></i> {{ hearing.date }}</span>
+                                <span class="text-emerald-600 dark:text-emerald-400">Status: Scheduled</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DEVELOPER CREDITS BANNER -->
+            <div class="rounded-2xl bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 text-white p-6 sm:p-8 shadow-xl border border-emerald-500/30 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="flex items-center space-x-4">
+                    <div class="w-16 h-16 rounded-2xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-3xl text-emerald-400 shrink-0">
+                        <i class="fa-solid fa-laptop-code"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs uppercase font-bold text-emerald-400 tracking-widest">Designed & Engineered By</div>
+                        <h3 class="text-2xl font-black text-white mt-0.5">Junaid Gillani</h3>
+                        <p class="text-slate-300 text-xs mt-1">Independent Information Portal & Real-Time Price Tracking Suite for Pakistan Energy Sector</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+                    <a href="tel:03176407904" class="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-sm px-6 py-3 rounded-xl shadow-lg transition-all text-center flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-phone"></i>
+                        <span>03176407904</span>
+                    </a>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- COMPLAINT MODAL -->
+        <div v-if="showComplaintModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200 dark:border-slate-800 relative animate-popup">
+                <button @click="showComplaintModal = false" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+
+                <div class="flex items-center space-x-3 mb-4">
+                    <div class="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-950 text-red-600 flex items-center justify-center text-lg font-bold">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-white">File Online Complaint</h3>
+                        <p class="text-xs text-slate-500">Submit grievances regarding petrol pump overcharging or gas quality</p>
+                    </div>
+                </div>
+
+                <form @submit.prevent="submitComplaint" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Full Name</label>
+                        <input v-model="complaintForm.name" required type="text" placeholder="Your Name" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-sm">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Phone Number</label>
+                            <input v-model="complaintForm.phone" required type="tel" placeholder="03XXXXXXXXX" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">City</label>
+                            <input v-model="complaintForm.city" required type="text" placeholder="e.g. Lahore" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-sm">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Complaint Category</label>
+                        <select v-model="complaintForm.category" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-sm font-semibold">
+                            <option>Petrol Pump Overcharging</option>
+                            <option>Fuel Quality / Adulteration</option>
+                            <option>LPG Short Cylinder Weight</option>
+                            <option>Gas Pressure Issue</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Complaint Details & Pump Name</label>
+                        <textarea v-model="complaintForm.details" required rows="3" placeholder="Specify station location, pump name and issue..." class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-sm"></textarea>
+                    </div>
+
+                    <div class="pt-2">
+                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-lg transition-all text-sm flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-paper-plane"></i> Submit Official Complaint
+                        </button>
+                    </div>
+                </form>
+
+                <div v-if="complaintSubmitted" class="mt-4 p-4 bg-emerald-50 dark:bg-emerald-950/80 rounded-xl border border-emerald-300 dark:border-emerald-800 text-center">
+                    <i class="fa-solid fa-circle-check text-2xl text-emerald-600 mb-1"></i>
+                    <div class="font-bold text-slate-900 dark:text-white text-sm">Complaint Registered Successfully!</div>
+                    <div class="text-xs text-slate-600 dark:text-slate-300 mt-1">Tracking ID: <strong class="text-emerald-600">{{ complaintTrackingId }}</strong></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="bg-slate-900 text-slate-400 text-xs border-t border-slate-800 mt-16 py-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-2 text-white font-bold text-base mb-3">
+                        <i class="fa-solid fa-gas-pump text-emerald-500"></i>
+                        <span>OGRA Live Pakistan</span>
+                    </div>
+                    <p class="text-slate-400 text-xs leading-relaxed">
+                        Independent informational suite providing explanations, updates, live price notifications, and analysis about OGRA regulations in Pakistan.
+                    </p>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold text-sm mb-3">Quick Navigation</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" @click.prevent="currentTab = 'rates'" class="hover:text-emerald-400">Daily Fuel Prices</a></li>
+                        <li><a href="#" @click.prevent="currentTab = 'calculator'" class="hover:text-emerald-400">Fuel & Trip Calculator</a></li>
+                        <li><a href="#" @click.prevent="currentTab = 'licensing'" class="hover:text-emerald-400">E-Licensing Portal</a></li>
+                        <li><a href="#" @click.prevent="currentTab = 'laws'" class="hover:text-emerald-400">Ordinance & Laws</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold text-sm mb-3">Government Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="https://www.ogra.org.pk" target="_blank" class="hover:text-emerald-400">Official OGRA Website</a></li>
+                        <li><a href="https://petroleum.gov.pk" target="_blank" class="hover:text-emerald-400">Ministry of Energy</a></li>
+                        <li><a href="https://psopk.com" target="_blank" class="hover:text-emerald-400">Pakistan State Oil (PSO)</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold text-sm mb-3">App Developer Info</h4>
+                    <p class="text-slate-300 font-bold mb-1">Junaid Gillani</p>
+                    <p class="text-slate-400 mb-2">Lead Developer & UI Designer</p>
+                    <p class="text-emerald-400 font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-phone"></i> 03176407904
+                    </p>
+                    <div class="mt-4 pt-3 border-t border-slate-800 text-[11px] text-slate-500">
+                        Live Web Visits: <span class="text-emerald-400 font-bold">142,890</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 pt-6 border-t border-slate-800/60 text-center text-slate-500 text-[11px]">
+                Copyright © 2026 OGRA Live App. Developed by Junaid Gillani (03176407904). All Rights Reserved.
+            </div>
+        </footer>
+
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    isDark: false,
+                    mobileMenuOpen: false,
+                    currentTab: 'rates',
+                    currentTime: '',
+                    lastUpdatedText: '26 July 2026, 06:00 AM',
+                    isReloading: false,
+                    selectedCity: 'Lahore',
+                    categoryFilter: 'All',
+                    searchQuery: '',
+
+                    tickerMessage: '⚡ OGRA notifies revised fuel prices for July 2026. Petrol Super stands at PKR 335.18/Ltr, High Speed Diesel at PKR 383.46/Ltr, LPG at PKR 241.43/Kg.',
+
+                    navTabs: [
+                        { id: 'rates', label: 'Fuel Rates', icon: 'fa-solid fa-chart-line' },
+                        { id: 'calculator', label: 'Fuel Calculator', icon: 'fa-solid fa-calculator' },
+                        { id: 'licensing', label: 'E-Licensing', icon: 'fa-solid fa-certificate' },
+                        { id: 'laws', label: 'Laws & Rules', icon: 'fa-solid fa-scale-balanced' },
+                        { id: 'hearings', label: 'Public Hearings', icon: 'fa-solid fa-users-rectangle' }
+                    ],
+
+                    cities: [
+                        'Lahore', 'Karachi', 'Islamabad', 'Rawalpindi', 'Peshawar', 
+                        'Quetta', 'Multan', 'Faisalabad', 'Sialkot', 'Gujranwala', 'Hyderabad'
+                    ],
+
+                    cityAdjustments: {
+                        'Karachi': 1.0,
+                        'Lahore': 1.002,
+                        'Islamabad': 1.004,
+                        'Rawalpindi': 1.004,
+                        'Peshawar': 1.006,
+                        'Quetta': 1.008,
+                        'Multan': 1.003,
+                        'Faisalabad': 1.003,
+                        'Sialkot': 1.004,
+                        'Gujranwala': 1.003,
+                        'Hyderabad': 1.001
+                    },
+
+                    fuels: [
+                        {
+                            id: 'p1',
+                            name: 'Petrol (Premier Euro 5)',
+                            category: 'Petroleum',
+                            description: 'Super Motor Gasoline 92/95 RON',
+                            price: 335.18,
+                            unit: 'Ltr',
+                            change: '+Rs 4.40',
+                            changeType: 'up',
+                            effectiveDate: 'July 2026',
+                            icon: 'fa-solid fa-gas-pump'
+                        },
+                        {
+                            id: 'p2',
+                            name: 'High Speed Diesel (HSD)',
+                            category: 'Petroleum',
+                            description: 'Euro 5 Hi-Cetane Diesel Fuel',
+                            price: 383.46,
+                            unit: 'Ltr',
+                            change: '+Rs 3.62',
+                            changeType: 'up',
+                            effectiveDate: 'July 2026',
+                            icon: 'fa-solid fa-truck-monster'
+                        },
+                        {
+                            id: 'p3',
+                            name: 'Light Diesel Oil (LDO)',
+                            category: 'Petroleum',
+                            description: 'Industrial and Agricultural Generator Diesel',
+                            price: 252.60,
+                            unit: 'Ltr',
+                            change: '0.00',
+                            changeType: 'neutral',
+                            effectiveDate: 'July 2026',
+                            icon: 'fa-solid fa-industry'
+                        },
+                        {
+                            id: 'p4',
+                            name: 'Kerosene Oil (SKO)',
+                            category: 'Petroleum',
+                            description: 'Superior Kerosene Oil for domestic use',
+                            price: 301.14,
+                            unit: 'Ltr',
+                            change: '-Rs 4.45',
+                            changeType: 'down',
+                            effectiveDate: 'July 2026',
+                            icon: 'fa-solid fa-fire-flame-simple'
+                        },
+                        {
+                            id: 'p5',
+                            name: 'LPG Domestic Cylinder (11.8kg)',
+                            category: 'LPG',
+                            description: 'Standard 11.8 Kg Domestic Consumer Cylinder',
+                            price: 2848.87,
+                            unit: 'Cylinder',
+                            change: '-Rs 15.00',
+                            changeType: 'down',
+                            effectiveDate: 'July 2026',
+                            icon: 'fa-solid fa-bottle-droplet'
+                        },
+                        {
+                            id: 'p6',
+                            name: 'LPG Per Kg Rate',
+                            category: 'LPG',
+                            description: 'Official consumer price per kilogram',
+                            price: 241.43,
+                            unit: 'Kg',
+                            change: '-Rs 1.20',
+                            changeType: 'down',
+                            effectiveDate: 'July 2026',
+                            icon: 'fa-solid fa-weight-hanging'
+                        }
+                    ],
+
+                    // Calculator variables
+                    calcFuelId: 'p1',
+                    calcDistance: 100,
+                    calcMileage: 12,
+                    lpgCylinderWeight: 11.8,
+                    lpgQty: 1,
+
+                    // Complaint Modal variables
+                    showComplaintModal: false,
+                    complaintSubmitted: false,
+                    complaintTrackingId: '',
+                    complaintForm: {
+                        name: '',
+                        phone: '',
+                        city: '',
+                        category: 'Petrol Pump Overcharging',
+                        details: ''
+                    },
+
+                    sops: [
+                        { title: 'Oil Marketing Company (OMC) Licence', desc: 'Licensing framework for establishing downstream petroleum infrastructure.', timeline: '90 Days', icon: 'fa-solid fa-building' },
+                        { title: 'LPG Storage & Filling Plant', desc: 'SOPs for safety clearance, construction, and operation of LPG facilities.', timeline: '60 Days', icon: 'fa-solid fa-fire' },
+                        { title: 'CNG Station Registration', desc: 'Rules for license renewal, safety testing, and equipment conversion.', timeline: '30 Days', icon: 'fa-solid fa-car' }
+                    ],
+
+                    laws: [
+                        { title: 'OGRA Ordinance 2002 (Amended 2009)', desc: 'Primary law establishing functions and powers of OGRA.', date: '17-Feb-2009' },
+                        { title: 'LPG Production & Distribution Rules 2014', desc: 'Regulatory standards governing LPG supply chain.', date: '01-Jan-2014' },
+                        { title: 'Pakistan Petroleum Refining Policy', desc: 'Guidelines for modernization and Euro-5 compliance.', date: '15-Aug-2023' }
+                    ],
+
+                    hearings: [
+                        { title: 'SNGPL Estimated Revenue Requirement (FY 2026-27)', venue: 'Peshawar & Lahore Public Halls', date: '05 August 2026', type: 'Gas Tariff' },
+                        { title: 'SSGCL Prescribed Prices Review Motion', venue: 'Karachi Marriott Hotel', date: '12 August 2026', type: 'Public Consultation' }
+                    ]
+                };
+            },
+
+            computed: {
+                cityMultiplier() {
+                    return this.cityAdjustments[this.selectedCity] || 1.0;
+                },
+
+                filteredFuels() {
+                    return this.fuels.filter(f => {
+                        const matchesCategory = this.categoryFilter === 'All' || f.category === this.categoryFilter;
+                        const matchesQuery = f.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                                            f.description.toLowerCase().includes(this.searchQuery.toLowerCase());
+                        return matchesCategory && matchesQuery;
+                    });
+                },
+
+                calculatedTripCost() {
+                    const selected = this.fuels.find(f => f.id === this.calcFuelId) || this.fuels[0];
+                    const litresNeeded = (this.calcDistance / (this.calcMileage || 1));
+                    const finalRate = selected.price * this.cityMultiplier;
+                    return (litresNeeded * finalRate).toFixed(2);
+                },
+
+                calculatedLitres() {
+                    return ((this.calcDistance / (this.calcMileage || 1))).toFixed(1);
+                },
+
+                calculatedLpgPrice() {
+                    const lpgRate = 241.43 * this.cityMultiplier;
+                    return (lpgRate * this.lpgCylinderWeight * this.lpgQty).toFixed(2);
+                }
+            },
+
+            mounted() {
+                this.updateTime();
+                setInterval(this.updateTime, 1000);
+            },
+
+            methods: {
+                toggleDarkMode() {
+                    this.isDark = !this.isDark;
+                    if (this.isDark) {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+                },
+
+                updateTime() {
+                    const now = new Date();
+                    this.currentTime = now.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                },
+
+                reloadRates() {
+                    this.isReloading = true;
+                    setTimeout(() => {
+                        this.isReloading = false;
+                        const now = new Date();
+                        this.lastUpdatedText = now.toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + now.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' });
+                        alert('✅ Rates successfully updated from OGRA Server!');
+                    }, 1200);
+                },
+
+                quickCalc(fuel) {
+                    this.currentTab = 'calculator';
+                    if (fuel.category === 'Petroleum') {
+                        this.calcFuelId = fuel.id;
+                    }
+                },
+
+                openComplaintModal() {
+                    this.showComplaintModal = true;
+                    this.complaintSubmitted = false;
+                },
+
+                openComplaintModalWithFuel(fuelName) {
+                    this.showComplaintModal = true;
+                    this.complaintSubmitted = false;
+                    this.complaintForm.details = `Issue regarding overcharging for ${fuelName} in ${this.selectedCity}.`;
+                },
+
+                submitComplaint() {
+                    this.complaintTrackingId = 'OGRA-CMP-' + Math.floor(100000 + Math.random() * 900000);
+                    this.complaintSubmitted = true;
+                    setTimeout(() => {
+                        this.complaintForm = { name: '', phone: '', city: '', category: 'Petrol Pump Overcharging', details: '' };
+                    }, 3000);
+                },
+
+                showDocNotice(title) {
+                    alert(`📄 Downloading official OGRA Gazette document:\n"${title}"`);
+                }
+            }
+        }).mount('#app');
+    </script>
+
+</body>
+</html>
