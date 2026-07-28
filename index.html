@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OGRA Official Petroleum & LPG Rate Portal</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        pakGreen: '#00401A',
+                        pakGold: '#D4AF37',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- html2canvas Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* Smooth Scrolling & Custom Scrollbars */
+        ::-webkit-scrollbar {
+            height: 6px;
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090d16;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 10px;
+        }
+
+        .ticker-wrap {
+            width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .ticker-move {
+            display: inline-block;
+            animation: ticker 35s linear infinite;
+        }
+        .ticker-wrap:hover .ticker-move {
+            animation-play-state: paused;
+        }
+        @keyframes ticker {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-50%, 0, 0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-emerald-500 selection:text-slate-950">
+
+    <!-- Top Utility Bar -->
+    <div class="bg-slate-900/90 border-b border-slate-800/80 text-[11px] py-1.5 px-3 font-medium text-slate-400">
+        <div class="max-w-7xl mx-auto flex justify-between items-center gap-2">
+            <div class="flex items-center gap-2">
+                <span class="text-emerald-400 font-semibold flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> OGRA Live
+                </span>
+                <span class="text-slate-700">|</span>
+                <span class="text-slate-400 truncate max-w-[180px] sm:max-w-none">Govt of Pakistan Portal</span>
+            </div>
+            <div class="flex items-center gap-3 text-xs">
+                <span id="syncStatusBadge" class="bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 px-2 py-0.5 rounded-full text-[10px] font-mono flex items-center gap-1">
+                    READY
+                </span>
+                <button onclick="exportCSV()" class="hover:text-white transition flex items-center gap-1 text-[11px] bg-slate-800/60 px-2 py-0.5 rounded border border-slate-700/50">
+                    <i class="fas fa-file-csv text-emerald-400"></i> <span class="hidden sm:inline">CSV</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scrolling Ticker Bar -->
+    <div class="bg-emerald-950/50 border-b border-emerald-900/40 text-emerald-200 text-xs py-1.5 px-3">
+        <div class="max-w-7xl mx-auto flex items-center gap-2">
+            <span class="bg-emerald-500 text-slate-950 text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0">BULLETIN</span>
+            <div class="ticker-wrap text-xs font-mono">
+                <div id="tickerContent" class="ticker-move">
+                    Fetching latest OGRA notifications... Please wait...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Header -->
+    <header class="border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 flex justify-between items-center">
+            <div class="flex items-center space-x-2.5">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-900 border border-emerald-400/30 flex items-center justify-center font-bold text-lg shadow-lg shadow-emerald-950/50 shrink-0">
+                    🇵🇰
+                </div>
+                <div>
+                    <div class="flex items-center gap-1.5">
+                        <h1 class="text-base sm:text-lg font-black tracking-tight text-white uppercase">OGRA Tracker</h1>
+                        <span class="bg-emerald-950 text-emerald-400 border border-emerald-800 text-[9px] px-1.5 py-0.2 rounded font-mono font-bold">v3.0</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400">Petroleum & LPG Rates</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <div class="text-right hidden xs:block">
+                    <p class="text-[9px] text-slate-400 uppercase tracking-wider">AutoSync</p>
+                    <p id="timerText" class="text-xs font-mono font-bold text-emerald-400">180s</p>
+                </div>
+                <button id="reloadBtn" onclick="fetchOgraPrices(true)" class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-semibold px-3 py-2 rounded-xl transition text-xs shadow-md shadow-emerald-950">
+                    <i id="reloadIcon" class="fas fa-rotate"></i>
+                    <span class="hidden sm:inline">Sync OGRA</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-3 sm:px-4 py-4 space-y-5 flex-1 w-full">
+
+        <!-- Notification Banner -->
+        <div id="statusNotification" class="hidden rounded-xl border p-3 text-xs flex items-center justify-between transition">
+            <div class="flex items-center gap-2.5">
+                <i id="statusIcon" class="fas fa-info-circle text-base"></i>
+                <span id="statusText" class="font-medium">System Initializing...</span>
+            </div>
+            <button onclick="document.getElementById('statusNotification').classList.add('hidden')" class="text-slate-400 hover:text-white p-1">
+                <i class="fas fa-xmark text-sm"></i>
+            </button>
+        </div>
+
+        <!-- TARGET AREA FOR IMAGE GENERATION -->
+        <div id="ratesCaptureArea" class="space-y-4 rounded-2xl bg-slate-950 p-1">
+            
+            <!-- MAIN RATES TABLE CONTAINER -->
+            <div class="bg-slate-900 border border-slate-800/80 rounded-2xl overflow-hidden shadow-xl">
+                <div class="p-3.5 sm:p-4 border-b border-slate-800/80 bg-slate-900/90 flex items-center justify-between gap-2">
+                    <div>
+                        <h2 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                            <i class="fas fa-gas-pump text-emerald-400"></i> Official Current Notification Rates
+                        </h2>
+                        <p class="text-[11px] text-slate-400">Directly synchronized from OGRA Gazette</p>
+                    </div>
+
+                    <!-- SHARE IMAGE BUTTON -->
+                    <button id="shareImgBtn" onclick="generateAndShareRatesImage()" class="flex items-center gap-1.5 bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-bold px-3 py-1.5 rounded-xl transition text-xs shadow-md shadow-amber-950 shrink-0">
+                        <i class="fas fa-camera"></i>
+                        <span class="font-bold">Share / Save</span>
+                    </button>
+                </div>
+
+                <!-- Touch Scrollable Table -->
+                <div class="overflow-x-auto w-full">
+                    <table class="w-full text-left text-xs sm:text-sm text-slate-200 min-w-[580px]">
+                        <thead class="bg-slate-950/80 text-slate-400 text-[11px] uppercase font-semibold border-b border-slate-800 tracking-wider">
+                            <tr>
+                                <th class="px-3.5 py-3">Fuel / Commodity</th>
+                                <th class="px-3.5 py-3">Unit</th>
+                                <th class="px-3.5 py-3">Current Rate</th>
+                                <th class="px-3.5 py-3">Old Rate</th>
+                                <th class="px-3.5 py-3 text-right">Net Change</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mainRatesTable" class="divide-y divide-slate-800/60 font-medium">
+                            <!-- Dynamic Content -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- LPG SPECIAL BREAKDOWN CARDS -->
+            <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-3.5 sm:p-4 space-y-3 shadow-xl">
+                <div class="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-400 flex items-center justify-center text-sm">
+                            <i class="fas fa-fire-burner"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-sm text-white">LPG Cylinder Breakdown</h3>
+                            <p class="text-[10px] text-slate-400">Domestic & Commercial Household Rates</p>
+                        </div>
+                    </div>
+                    <span class="text-[10px] bg-orange-950/60 text-orange-400 border border-orange-800/50 px-2 py-0.5 rounded-md font-mono">
+                        Monthly Notification
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-3 flex sm:flex-col justify-between sm:justify-start items-center sm:items-start">
+                        <div>
+                            <span class="text-[11px] text-slate-400 block">LPG Rate Per Kg</span>
+                            <div class="text-xl font-black text-orange-400 font-mono mt-0.5">Rs. <span id="lpgPerKg">241.43</span></div>
+                        </div>
+                        <i class="fas fa-weight-hanging text-base text-orange-400/40 sm:mt-2"></i>
+                    </div>
+
+                    <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-3 flex sm:flex-col justify-between sm:justify-start items-center sm:items-start">
+                        <div>
+                            <span class="text-[11px] text-slate-400 block">Domestic Cylinder (11.8 Kg)</span>
+                            <div class="text-xl font-black text-emerald-400 font-mono mt-0.5">Rs. <span id="lpgCylinder">2,848.87</span></div>
+                        </div>
+                        <i class="fas fa-house text-base text-emerald-400/40 sm:mt-2"></i>
+                    </div>
+
+                    <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-3 flex sm:flex-col justify-between sm:justify-start items-center sm:items-start">
+                        <div>
+                            <span class="text-[11px] text-slate-400 block">Commercial Cylinder (45.4 Kg)</span>
+                            <div class="text-xl font-black text-blue-400 font-mono mt-0.5">Rs. <span id="lpgCommCylinder">10,960.00</span></div>
+                        </div>
+                        <i class="fas fa-building text-base text-blue-400/40 sm:mt-2"></i>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- CALCULATOR & REGIONAL MATRIX -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            
+            <!-- Calculator -->
+            <div class="lg:col-span-5 bg-slate-900 border border-slate-800/80 rounded-2xl p-3.5 sm:p-4 space-y-3">
+                <div class="flex items-center gap-2.5 border-b border-slate-800/80 pb-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm text-white">Fuel & Gas Cost Calculator</h3>
+                        <p class="text-[10px] text-slate-400">Calculate total cost for custom quantity</p>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-300 mb-1">Select Commodity</label>
+                        <select id="calcFuelType" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 font-medium" onchange="calculateFuel()">
+                            <!-- Dynamic Options -->
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-300 mb-1">Quantity (Litres or Kg)</label>
+                        <input type="number" id="calcLitres" value="10" min="0.1" step="0.5" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono" oninput="calculateFuel()">
+                    </div>
+
+                    <div class="p-3 bg-slate-950/80 rounded-xl border border-slate-800 space-y-1.5">
+                        <div class="flex justify-between text-xs text-slate-400">
+                            <span>Volume/Weight:</span>
+                            <span id="displayLitres" class="text-white font-mono font-semibold">10 Units</span>
+                        </div>
+                        <div class="flex justify-between text-xs text-slate-400">
+                            <span>Base Rate:</span>
+                            <span id="displayRate" class="text-white font-mono font-semibold">Rs. 0.00</span>
+                        </div>
+                        <div class="border-t border-slate-800 pt-2 flex justify-between items-center">
+                            <span class="font-bold text-xs text-slate-200">Total Estimate:</span>
+                            <span id="totalCost" class="text-lg font-black text-emerald-400 font-mono">Rs. 0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Regional Matrix -->
+            <div class="lg:col-span-7 bg-slate-900 border border-slate-800/80 rounded-2xl p-3.5 sm:p-4 space-y-3">
+                <div class="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center text-sm">
+                            <i class="fas fa-city"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-sm text-white">Estimated Regional Retail Rates</h3>
+                            <p class="text-[10px] text-slate-400">Freight equalization margin (IFEM) included</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-300 min-w-[420px]">
+                        <thead class="bg-slate-950/80 text-slate-400 text-[10px] uppercase font-semibold border-b border-slate-800">
+                            <tr>
+                                <th class="px-3 py-2">City</th>
+                                <th class="px-3 py-2">Petrol</th>
+                                <th class="px-3 py-2">Diesel</th>
+                                <th class="px-3 py-2">Margin</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cityTable" class="divide-y divide-slate-800/60 font-mono text-[11px]">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- HISTORICAL RATE LOG -->
+        <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-3.5 sm:p-4 space-y-3">
+            <div class="flex items-center gap-2.5 border-b border-slate-800/80 pb-2.5">
+                <div class="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center text-sm">
+                    <i class="fas fa-clock-rotate-left"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-sm text-white">OGRA Rate History</h3>
+                    <p class="text-[10px] text-slate-400">Previous gazette pricing logs</p>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs text-slate-300 min-w-[500px]">
+                    <thead class="bg-slate-950/80 text-slate-400 text-[10px] uppercase font-semibold border-b border-slate-800">
+                        <tr>
+                            <th class="px-3 py-2">Date</th>
+                            <th class="px-3 py-2">Petrol</th>
+                            <th class="px-3 py-2">Diesel</th>
+                            <th class="px-3 py-2">LPG (Kg)</th>
+                            <th class="px-3 py-2">Trend</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTable" class="divide-y divide-slate-800/60 font-mono text-[11px]">
+                        <!-- Populated via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800/80 bg-slate-900/60 text-center py-4 mt-4">
+        <div class="max-w-7xl mx-auto px-3 space-y-2">
+            <div class="inline-flex items-center gap-2 bg-slate-950 border border-emerald-500/20 rounded-xl px-4 py-2 shadow-lg">
+                <p class="text-emerald-400 font-bold text-xs flex items-center gap-2">
+                    <i class="fas fa-laptop-code"></i> App Creator Junaid Gillani
+                    <span class="text-slate-700">|</span> 
+                    <i class="fas fa-phone-alt text-[10px]"></i> 03176407904
+                </p>
+            </div>
+            <p class="text-[10px] text-slate-500">
+                Continuous automated checks every 3 minutes.
+            </p>
+        </div>
+    </footer>
+
+    <!-- APPLICATION SCRIPTS -->
+    <script>
+        // Data Store
+        let fuelData = [
+            { id: 'petrol', name: 'Motor Spirit (Petrol)', ograKey: 'petrol', unit: 'Per Litre', price: 335.18, oldPrice: 331.52, change: +3.66, lastChangedDate: '16 Jul 2026', icon: 'fa-gas-pump', iconColor: 'text-emerald-400' },
+            { id: 'diesel', name: 'High Speed Diesel (HSD)', ograKey: 'diesel', unit: 'Per Litre', price: 383.46, oldPrice: 378.66, change: +4.80, lastChangedDate: '16 Jul 2026', icon: 'fa-truck-field', iconColor: 'text-blue-400' },
+            { id: 'lpg', name: 'LPG Gas', ograKey: 'lpg', unit: 'Per Kg', price: 241.43, oldPrice: 308.76, change: -67.33, lastChangedDate: '01 Jul 2026', icon: 'fa-fire', iconColor: 'text-orange-400' },
+            { id: 'octane', name: 'High Octane (HOBC 97)', ograKey: 'octane', unit: 'Per Litre', price: 350.00, oldPrice: 360.00, change: -10.00, lastChangedDate: '16 Jul 2026', icon: 'fa-gauge-high', iconColor: 'text-purple-400' },
+            { id: 'kerosene', name: 'Kerosene Oil (SKO)', ograKey: 'kerosene', unit: 'Per Litre', price: 301.14, oldPrice: 276.66, change: +24.48, lastChangedDate: '16 Jul 2026', icon: 'fa-oil-can', iconColor: 'text-amber-400' },
+            { id: 'ldo', name: 'Light Diesel Oil (LDO)', ograKey: 'light diesel', unit: 'Per Litre', price: 252.60, oldPrice: 230.67, change: +21.93, lastChangedDate: '16 Jul 2026', icon: 'fa-industry', iconColor: 'text-cyan-400' }
+        ];
+
+        const rateHistory = [
+            { date: '16 Jul 2026', petrol: 335.18, diesel: 383.46, lpg: 241.43, octane: 350.00, status: 'Increased (+3.66)' },
+            { date: '01 Jul 2026', petrol: 331.52, diesel: 378.66, lpg: 245.10, octane: 355.00, status: 'Decreased (-3.86)' },
+            { date: '16 Jun 2026', petrol: 328.00, diesel: 374.00, lpg: 248.50, octane: 360.00, status: 'Increased (+4.50)' },
+            { date: '01 Jun 2026', petrol: 323.50, diesel: 370.20, lpg: 255.00, octane: 365.00, status: 'Unchanged' },
+            { date: '16 May 2026', petrol: 323.50, diesel: 370.20, lpg: 260.00, octane: 365.00, status: 'Decreased (-6.30)' }
+        ];
+
+        const OGRA_TARGET_URL = 'https://www.ogra.org.pk/';
+        
+        const PROXY_PIPELINE = [
+            { name: 'CorsProxy', url: (target) => `https://corsproxy.io/?${encodeURIComponent(target)}`, type: 'text' },
+            { name: 'AllOrigins', url: (target) => `https://api.allorigins.win/get?url=${encodeURIComponent(target)}`, type: 'json' },
+            { name: 'CodeTabs', url: (target) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(target)}`, type: 'text' }
+        ];
+
+        let countdownSeconds = 180;
+        let timerInterval = null;
+
+        function renderMainTable() {
+            const tableBody = document.getElementById('mainRatesTable');
+            tableBody.innerHTML = '';
+
+            fuelData.forEach(item => {
+                const isIncrease = item.change > 0;
+                const isNeutral = item.change === 0;
+
+                let changeBadge = '';
+                if (isIncrease) {
+                    changeBadge = `<span class="text-[10px] font-bold text-red-400 bg-red-950/60 border border-red-800/50 px-2 py-0.5 rounded-md inline-flex items-center gap-1">
+                        <i class="fas fa-caret-up"></i> +${item.change.toFixed(2)}
+                    </span>`;
+                } else if (!isNeutral) {
+                    changeBadge = `<span class="text-[10px] font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800/50 px-2 py-0.5 rounded-md inline-flex items-center gap-1">
+                        <i class="fas fa-caret-down"></i> ${item.change.toFixed(2)}
+                    </span>`;
+                } else {
+                    changeBadge = `<span class="text-[10px] font-semibold text-slate-400 bg-slate-800 px-2 py-0.5 rounded-md">Unchanged</span>`;
+                }
+
+                const row = `
+                    <tr class="hover:bg-slate-800/40 transition">
+                        <td class="px-3.5 py-3 font-semibold text-white">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-7 h-7 rounded-lg bg-slate-800 border border-slate-700/80 flex items-center justify-center shrink-0">
+                                    <i class="fas ${item.icon} ${item.iconColor} text-xs"></i>
+                                </div>
+                                <span class="truncate">${item.name}</span>
+                            </div>
+                        </td>
+                        <td class="px-3.5 py-3 text-[11px] text-slate-400 font-medium">${item.unit}</td>
+                        <td class="px-3.5 py-3">
+                            <div class="text-sm font-black text-white font-mono">
+                                <span class="text-[10px] font-normal text-emerald-400 mr-0.5">PKR</span>${item.price.toFixed(2)}
+                            </div>
+                            <div class="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1 font-sans">
+                                <span>Eff: <strong class="text-slate-300 font-medium">${item.lastChangedDate}</strong></span>
+                            </div>
+                        </td>
+                        <td class="px-3.5 py-3 text-[11px] text-slate-400 font-mono line-through">Rs. ${item.oldPrice.toFixed(2)}</td>
+                        <td class="px-3.5 py-3 text-right">${changeBadge}</td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+
+            const lpg = fuelData.find(f => f.id === 'lpg');
+            if (lpg) {
+                document.getElementById('lpgPerKg').innerText = lpg.price.toFixed(2);
+                document.getElementById('lpgCylinder').innerText = (lpg.price * 11.8).toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                document.getElementById('lpgCommCylinder').innerText = (lpg.price * 45.4).toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+
+            populateCalculatorDropdown();
+            updateTicker();
+        }
+
+        function renderCityTable() {
+            const tableBody = document.getElementById('cityTable');
+            tableBody.innerHTML = '';
+
+            const petrolPrice = fuelData.find(f => f.id === 'petrol')?.price || 335.18;
+            const dieselPrice = fuelData.find(f => f.id === 'diesel')?.price || 383.46;
+
+            const cityData = [
+                { name: 'Karachi (Depot)', petrol: petrolPrice, diesel: dieselPrice, margin: 'Base' },
+                { name: 'Lahore (Punjab)', petrol: petrolPrice + 1.02, diesel: dieselPrice + 1.04, margin: '+1.02' },
+                { name: 'Islamabad / Rwp', petrol: petrolPrice + 1.02, diesel: dieselPrice + 1.04, margin: '+1.02' },
+                { name: 'Peshawar (KPK)', petrol: petrolPrice + 1.92, diesel: dieselPrice + 1.74, margin: '+1.92' },
+                { name: 'Quetta (Balochistan)', petrol: petrolPrice + 4.32, diesel: dieselPrice + 4.54, margin: '+4.32' }
+            ];
+
+            cityData.forEach(c => {
+                const row = `
+                    <tr class="hover:bg-slate-800/40 transition">
+                        <td class="px-3 py-2 font-semibold text-white font-sans text-xs">${c.name}</td>
+                        <td class="px-3 py-2 text-emerald-400 font-bold">Rs. ${c.petrol.toFixed(2)}</td>
+                        <td class="px-3 py-2 text-blue-400 font-bold">Rs. ${c.diesel.toFixed(2)}</td>
+                        <td class="px-3 py-2 text-slate-400 text-[10px]">${c.margin}</td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+        }
+
+        function renderHistoryTable() {
+            const historyBody = document.getElementById('historyTable');
+            historyBody.innerHTML = '';
+
+            rateHistory.forEach(h => {
+                const row = `
+                    <tr class="hover:bg-slate-800/40 transition">
+                        <td class="px-3 py-2 text-white font-medium font-sans text-xs">${h.date}</td>
+                        <td class="px-3 py-2 text-emerald-400 font-bold">Rs. ${h.petrol.toFixed(2)}</td>
+                        <td class="px-3 py-2 text-blue-400 font-bold">Rs. ${h.diesel.toFixed(2)}</td>
+                        <td class="px-3 py-2 text-orange-400">Rs. ${h.lpg.toFixed(2)}</td>
+                        <td class="px-3 py-2 text-slate-400 text-[10px] font-sans">${h.status}</td>
+                    </tr>
+                `;
+                historyBody.innerHTML += row;
+            });
+        }
+
+        function updateTicker() {
+            const p = fuelData.find(f => f.id === 'petrol')?.price.toFixed(2);
+            const d = fuelData.find(f => f.id === 'diesel')?.price.toFixed(2);
+            const l = fuelData.find(f => f.id === 'lpg')?.price.toFixed(2);
+
+            document.getElementById('tickerContent').innerHTML = `
+                ⛽ Petrol: <span class="text-white">Rs. ${p}</span> &nbsp;|&nbsp; 
+                🚚 Diesel: <span class="text-white">Rs. ${d}</span> &nbsp;|&nbsp; 
+                🔥 LPG Consumer: <span class="text-white">Rs. ${l} / Kg</span> &nbsp;|&nbsp; 
+                📢 Source: Official OGRA Pakistan Gazette Notifications.
+            `;
+        }
+
+        function populateCalculatorDropdown() {
+            const select = document.getElementById('calcFuelType');
+            const currentValue = select.value;
+            select.innerHTML = '';
+
+            fuelData.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.price;
+                opt.setAttribute('data-unit', item.unit);
+                opt.text = `${item.name} - Rs. ${item.price.toFixed(2)} / ${item.unit.replace('Per ', '')}`;
+                select.appendChild(opt);
+            });
+
+            if (currentValue && [...select.options].some(o => o.value === currentValue)) {
+                select.value = currentValue;
+            }
+            calculateFuel();
+        }
+
+        function calculateFuel() {
+            const select = document.getElementById('calcFuelType');
+            const selectedOption = select.options[select.selectedIndex];
+            const rate = parseFloat(select.value) || 0;
+            const litres = parseFloat(document.getElementById('calcLitres').value) || 0;
+            const unit = selectedOption ? selectedOption.getAttribute('data-unit') : 'Unit';
+
+            const total = rate * litres;
+
+            document.getElementById('displayLitres').innerText = `${litres} ${unit.replace('Per ', '')}`;
+            document.getElementById('displayRate').innerText = `Rs. ${rate.toFixed(2)}`;
+            document.getElementById('totalCost').innerText = `Rs. ${total.toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+
+            countdownSeconds = 180;
+            document.getElementById('timerText').innerText = `${countdownSeconds}s`;
+
+            timerInterval = setInterval(() => {
+                countdownSeconds--;
+                document.getElementById('timerText').innerText = `${countdownSeconds}s`;
+
+                if (countdownSeconds <= 0) {
+                    countdownSeconds = 180;
+                    fetchOgraPrices(false);
+                }
+            }, 1000);
+        }
+
+        async function fetchOgraPrices(isUserClick = false) {
+            const reloadIcon = document.getElementById('reloadIcon');
+            const reloadBtn = document.getElementById('reloadBtn');
+            const badge = document.getElementById('syncStatusBadge');
+
+            reloadIcon.classList.add('fa-spin');
+            reloadBtn.disabled = true;
+
+            badge.className = "bg-amber-950/80 text-amber-400 border border-amber-800/60 px-2 py-0.5 rounded-full text-[10px] font-mono flex items-center gap-1";
+            badge.innerHTML = `SYNCING...`;
+
+            let htmlContent = null;
+            let usedProxy = null;
+
+            for (const proxy of PROXY_PIPELINE) {
+                try {
+                    const response = await fetch(proxy.url(OGRA_TARGET_URL), { cache: "no-store" });
+                    if (!response.ok) continue;
+
+                    if (proxy.type === 'json') {
+                        const json = await response.json();
+                        htmlContent = json.contents;
+                    } else {
+                        htmlContent = await response.text();
+                    }
+
+                    if (htmlContent && htmlContent.length > 500) {
+                        usedProxy = proxy.name;
+                        break;
+                    }
+                } catch (err) {
+                    console.warn(`Proxy ${proxy.name} failed:`, err);
+                }
+            }
+
+            if (htmlContent && usedProxy) {
+                try {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(htmlContent, 'text/html');
+                    const textElements = doc.querySelectorAll('tr, td, .news-item, p, div');
+                    const formattedDate = new Date().toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' });
+
+                    textElements.forEach(el => {
+                        const content = el.innerText ? el.innerText.toLowerCase() : "";
+                        fuelData.forEach(fuel => {
+                            if (content.includes(fuel.ograKey)) {
+                                const matches = content.match(/(\d{2,3}\.\d{2})/g);
+                                if (matches && matches.length > 0) {
+                                    const parsedPrice = parseFloat(matches[0]);
+                                    if (parsedPrice > 50 && parsedPrice < 600) {
+                                        if (fuel.price !== parsedPrice) {
+                                            fuel.oldPrice = fuel.price;
+                                            fuel.change = parsedPrice - fuel.price;
+                                            fuel.price = parsedPrice;
+                                            fuel.lastChangedDate = formattedDate;
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    });
+
+                    renderMainTable();
+                    renderCityTable();
+
+                    badge.className = "bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 px-2 py-0.5 rounded-full text-[10px] font-mono flex items-center gap-1";
+                    badge.innerHTML = `LIVE (${usedProxy})`;
+
+                    if (isUserClick) showNotification("Rates updated via OGRA Portal.", "success");
+
+                } catch (e) {
+                    console.error("DOM Parsing error:", e);
+                    badge.className = "bg-slate-800 text-slate-300 border border-slate-700 px-2 py-0.5 rounded-full text-[10px] font-mono";
+                    badge.innerHTML = "CACHED";
+                }
+            } else {
+                badge.className = "bg-red-950/80 text-red-400 border border-red-800/60 px-2 py-0.5 rounded-full text-[10px] font-mono flex items-center gap-1";
+                badge.innerHTML = `OFFLINE CACHE`;
+
+                if (isUserClick) showNotification("Live proxy unavailable. Showing cached rates.", "warning");
+            }
+
+            countdownSeconds = 180;
+            document.getElementById('timerText').innerText = `${countdownSeconds}s`;
+
+            reloadIcon.classList.remove('fa-spin');
+            reloadBtn.disabled = false;
+        }
+
+        async function generateAndShareRatesImage() {
+            const captureArea = document.getElementById('ratesCaptureArea');
+            const shareBtn = document.getElementById('shareImgBtn');
+            const originalContent = shareBtn.innerHTML;
+
+            try {
+                shareBtn.disabled = true;
+                shareBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Generating...`;
+
+                const canvas = await html2canvas(captureArea, {
+                    backgroundColor: '#020617',
+                    scale: 2,
+                    logging: false,
+                    useCORS: true
+                });
+
+                canvas.toBlob(async (blob) => {
+                    if (!blob) {
+                        alert("Image generation failed.");
+                        shareBtn.innerHTML = originalContent;
+                        shareBtn.disabled = false;
+                        return;
+                    }
+
+                    const fileName = `OGRA_Rates_${new Date().toISOString().slice(0, 10)}.png`;
+                    const file = new File([blob], fileName, { type: 'image/png' });
+
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        try {
+                            await navigator.share({
+                                files: [file],
+                                title: 'OGRA Fuel & LPG Rates',
+                                text: 'Official OGRA Pakistan Fuel & LPG Rates Update.'
+                            });
+                        } catch (shareError) {
+                            if (shareError.name !== 'AbortError') {
+                                triggerImageDownload(blob, fileName);
+                            }
+                        }
+                    } else {
+                        triggerImageDownload(blob, fileName);
+                    }
+
+                    shareBtn.innerHTML = originalContent;
+                    shareBtn.disabled = false;
+                }, 'image/png');
+
+            } catch (err) {
+                console.error("Image generation error:", err);
+                alert("An error occurred while creating the image card.");
+                shareBtn.innerHTML = originalContent;
+                shareBtn.disabled = false;
+            }
+        }
+
+        function triggerImageDownload(blob, fileName) {
+            const downloadUrl = URL.URL.createObjectURL(blob);
+            const anchor = document.createElement('a');
+            anchor.href = downloadUrl;
+            anchor.download = fileName;
+            document.body.appendChild(anchor);
+            anchor.click();
+            document.body.removeChild(anchor);
+            URL.revokeObjectURL(downloadUrl);
+            showNotification("Image saved to your device!", "success");
+        }
+
+        function showNotification(message, type = 'info') {
+            const notif = document.getElementById('statusNotification');
+            const text = document.getElementById('statusText');
+            const icon = document.getElementById('statusIcon');
+
+            notif.classList.remove('hidden', 'bg-emerald-950/80', 'border-emerald-800', 'text-emerald-200', 'bg-amber-950/80', 'border-amber-800', 'text-amber-200');
+
+            if (type === 'success') {
+                notif.classList.add('bg-emerald-950/80', 'border-emerald-800', 'text-emerald-200');
+                icon.className = "fas fa-check-circle text-base text-emerald-400";
+            } else {
+                notif.classList.add('bg-amber-950/80', 'border-amber-800', 'text-amber-200');
+                icon.className = "fas fa-triangle-exclamation text-base text-amber-400";
+            }
+
+            text.innerText = message;
+        }
+
+        function exportCSV() {
+            let csv = 'Commodity,Unit,Current Price (PKR),Previous Price,Last Changed\n';
+            fuelData.forEach(f => {
+                csv += `"${f.name}","${f.unit}",${f.price},${f.oldPrice},"${f.lastChangedDate}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('href', url);
+            a.setAttribute('download', `OGRA_Fuel_Rates_${new Date().toISOString().slice(0,10)}.csv`);
+            a.click();
+        }
+
+        window.onload = function() {
+            renderMainTable();
+            renderCityTable();
+            renderHistoryTable();
+
+            fetchOgraPrices(false);
+            startTimer();
+        }
+    </script>
+</body>
+</html>
