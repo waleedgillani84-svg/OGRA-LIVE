@@ -1,0 +1,1202 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Faiz E Nagina - Grill Food Point</title>
+
+    <!-- PWA EMBEDDED MANIFEST & MOBILE APP META TAGS -->
+    <meta name="theme-color" content="#f57224">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Faiz E Nagina">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3075/3075977.png">
+    <link rel="manifest" href='data:application/manifest+json,{"name":"Faiz E Nagina Grill Food Point","short_name":"FaizENagina","start_url":"/faizenagina/","display":"standalone","background_color":"#ffffff","theme_color":"#f57224","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/3075/3075977.png","sizes":"192x192","type":"image/png"},{"src":"https://cdn-icons-png.flaticon.com/512/3075/3075977.png","sizes":"512x512","type":"image/png"}]}'>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter & Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        daraz: {
+                            orange: '#f57224',
+                            orangeDark: '#d85307',
+                            orangeLight: '#fff2eb',
+                            bg: '#f4f4f6',
+                            card: '#ffffff',
+                            textDark: '#212121',
+                            textMuted: '#757575',
+                            border: '#e5e5e5'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Poppins', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Inter', 'Poppins', sans-serif;
+            background-color: #f4f4f6;
+            color: #212121;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .daraz-header {
+            background: linear-gradient(135deg, #f57224 0%, #ff6801 100%);
+        }
+
+        .daraz-btn {
+            background: #f57224;
+        }
+        .daraz-btn:hover {
+            background: #d85307;
+        }
+
+        /* 3D Animated Chef Badge Effect */
+        .chef-3d-badge {
+            background: radial-gradient(circle at 30% 30%, #ffffff, #ffe0d1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15), inset -2px -2px 4px rgba(0,0,0,0.1);
+            animation: bounceSoft 3s ease-in-out infinite;
+        }
+
+        @keyframes bounceSoft {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-3px) scale(1.03); }
+        }
+    </style>
+</head>
+<body class="bg-daraz-bg min-h-full pb-24 antialiased selection:bg-daraz-orange selection:text-white">
+
+    <!-- TOP DARAZ APP HEADER -->
+    <header class="sticky top-0 z-40 daraz-header text-white shadow-md">
+        <div class="max-w-md mx-auto px-4 py-3">
+            <!-- Brand Logo & 3D Chef Burger Making Badge -->
+            <div class="flex items-center justify-between mb-2.5">
+                <div class="flex items-center space-x-2.5">
+                    <!-- 3D Chef Burger Making Badge -->
+                    <div class="w-10 h-10 rounded-2xl chef-3d-badge flex items-center justify-center text-xl shadow-md border border-white/60 relative">
+                        <span title="Chef making burger">👨‍🍳</span>
+                        <span class="absolute -bottom-1 -right-1 text-xs">🍔</span>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center space-x-1">
+                            <h1 class="font-black text-base leading-none tracking-wide uppercase text-white">
+                                FAIZ E NAGINA
+                            </h1>
+                            <i class="fa-solid fa-crown text-amber-300 text-xs"></i>
+                        </div>
+                        <p class="text-[9.5px] text-orange-100 font-bold tracking-widest uppercase mt-0.5">GRILL FOOD POINT</p>
+                    </div>
+                </div>
+
+                <button onclick="openUserEditModal()" class="bg-white text-daraz-orange border border-white px-3 py-1 rounded-full text-[10px] font-extrabold uppercase shadow">
+                    <span id="headerUserName">GUEST</span>
+                </button>
+            </div>
+
+            <!-- Daraz Search Bar -->
+            <div class="relative flex items-center shadow-md rounded-xl overflow-hidden bg-white">
+                <i class="fa-solid fa-magnifying-glass text-daraz-textMuted text-sm pl-3.5"></i>
+                <input 
+                    type="text" 
+                    id="searchInput"
+                    onkeyup="filterItems()"
+                    placeholder="Search menu (Zinger, Shawarma, Paratha, Fries)..." 
+                    class="w-full py-2.5 pl-2.5 pr-8 text-xs focus:outline-none text-daraz-textDark placeholder-gray-400 bg-transparent font-medium"
+                >
+                <button id="clearSearchBtn" onclick="clearSearch()" class="hidden absolute right-12 text-gray-400 hover:text-black">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+                <button onclick="filterItems()" class="daraz-btn text-white px-4 py-2.5 text-xs font-bold">
+                    <i class="fa-solid fa-search"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN BODY CONTAINER -->
+    <main class="max-w-md mx-auto px-3 mt-3 space-y-3">
+
+        <!-- DARAZ PROMO BANNER -->
+        <div class="relative overflow-hidden rounded-2xl daraz-header text-white p-4 shadow-md">
+            <div class="relative z-10">
+                <span class="inline-block px-2.5 py-0.5 rounded-full bg-white text-daraz-orange text-[10px] font-extrabold uppercase mb-1 shadow-sm">
+                    🔥 BEST TASTE • BEST QUALITY
+                </span>
+                <h2 class="text-lg font-black leading-tight">
+                    FAIZ E NAGINA GRILL FOOD POINT
+                </h2>
+                <p class="text-xs text-orange-100 font-medium mt-0.5">
+                    Delicious Food, Happy Mood!
+                </p>
+                <div class="mt-2.5 flex items-center space-x-2 text-[10px] font-bold">
+                    <span class="bg-black/20 px-2.5 py-1 rounded-lg border border-white/20">
+                        <i class="fa-solid fa-motorcycle text-amber-300 mr-1"></i> Delivery Charge: Rs. 50
+                    </span>
+                    <a href="tel:03019750840" class="bg-white/20 hover:bg-white/30 text-white px-2.5 py-1 rounded-lg border border-white/20">
+                        <i class="fa-solid fa-phone mr-1"></i> 0301-9750840
+                    </a>
+                </div>
+            </div>
+            <i class="fa-solid fa-burger absolute -right-3 -bottom-4 text-8xl text-white/10 rotate-12 pointer-events-none"></i>
+        </div>
+
+        <!-- CATEGORY NAVIGATION CAROUSEL (WITH EMOJI PICTURES) -->
+        <div class="bg-white rounded-2xl p-3 shadow-sm border border-daraz-border">
+            <p class="text-[11px] font-bold text-daraz-textMuted uppercase tracking-wider mb-2">Categories</p>
+            <div id="categoryTabs" class="flex space-x-2 overflow-x-auto no-scrollbar py-1">
+                <!-- Category Buttons populated by JS -->
+            </div>
+        </div>
+
+        <!-- MENU ITEMS GRID CONTAINER (DARAZ GRID FORMAT) -->
+        <div id="menuSectionsContainer" class="space-y-4">
+            <!-- Rendered by JS -->
+        </div>
+
+    </main>
+
+    <!-- RESTAURANT FOOTER WITH EXACT SHOP ADDRESS -->
+    <footer class="max-w-md mx-auto px-3 mt-6 mb-4">
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-daraz-border text-center space-y-2.5">
+            <div class="flex items-center justify-center space-x-2 text-daraz-orange font-black text-sm uppercase">
+                <i class="fa-solid fa-crown text-amber-500"></i>
+                <span>Faiz E Nagina Grill Food Point</span>
+            </div>
+            <p class="text-xs text-daraz-textDark font-semibold">Proprietor: <strong class="text-daraz-orange">RĀNĀ ZAHEER AHMAD</strong></p>
+
+            <div class="flex justify-center space-x-2 text-xs font-bold pt-1">
+                <a href="tel:03019750840" class="bg-daraz-orangeLight text-daraz-orange border border-orange-200 px-3 py-1.5 rounded-xl transition">
+                    <i class="fa-solid fa-phone mr-1"></i> 0301-9750840
+                </a>
+                <a href="tel:03144333236" class="bg-daraz-orangeLight text-daraz-orange border border-orange-200 px-3 py-1.5 rounded-xl transition">
+                    <i class="fa-solid fa-phone mr-1"></i> 0314-4333236
+                </a>
+            </div>
+
+            <!-- EXACT SHOP ADDRESS -->
+            <p class="text-[11px] text-daraz-textMuted pt-1 border-t border-daraz-border">
+                <i class="fa-solid fa-location-dot text-daraz-orange mr-1"></i> <strong>Shop Address:</strong> China Scheme Liaqat Chowk China Road Lahore.
+            </p>
+        </div>
+    </footer>
+
+    <!-- DARAZ NATIVE BOTTOM NAVBAR -->
+    <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-daraz-border shadow-2xl">
+        <div class="max-w-md mx-auto flex items-center justify-around py-2.5 px-2 text-center text-daraz-textMuted text-[10px] font-semibold">
+            
+            <button onclick="setCategory('ALL')" class="flex-1 flex flex-col items-center text-daraz-orange font-bold active:scale-95">
+                <i class="fa-solid fa-house text-lg mb-0.5"></i>
+                <span>Home</span>
+            </button>
+
+            <button onclick="openCartModal()" class="flex-1 flex flex-col items-center hover:text-daraz-orange relative active:scale-95">
+                <div class="relative">
+                    <i class="fa-solid fa-cart-shopping text-lg text-daraz-orange mb-0.5"></i>
+                    <span id="navCartBadge" class="absolute -top-1.5 -right-2 bg-red-600 text-white font-black text-[9px] w-4 h-4 rounded-full flex items-center justify-center shadow">0</span>
+                </div>
+                <span class="text-daraz-orange font-bold">Cart</span>
+            </button>
+
+            <button onclick="openHistoryModal()" class="flex-1 flex flex-col items-center hover:text-daraz-orange active:scale-95">
+                <i class="fa-solid fa-clock-rotate-left text-lg mb-0.5"></i>
+                <span>History</span>
+            </button>
+
+            <button onclick="openUserEditModal()" class="flex-1 flex flex-col items-center hover:text-daraz-orange active:scale-95">
+                <i class="fa-solid fa-user text-lg mb-0.5"></i>
+                <span>Account</span>
+            </button>
+
+        </div>
+    </nav>
+
+    <!-- FLOATING CHECKOUT STRIP -->
+    <div id="floatingCart" class="fixed bottom-14 left-0 right-0 max-w-md mx-auto px-3 z-30 transition-transform transform translate-y-36 duration-300">
+        <button onclick="openCartModal()" class="w-full daraz-btn text-white p-3 rounded-2xl shadow-xl flex items-center justify-between border border-orange-400/40 active:scale-[0.98] transition">
+            <div class="flex items-center space-x-3">
+                <div class="relative bg-white/20 w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold">
+                    <i class="fa-solid fa-bag-shopping text-base"></i>
+                    <span id="floatingBadge" class="absolute -top-1 -right-1 bg-white text-daraz-orange text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow">0</span>
+                </div>
+                <div class="text-left">
+                    <p class="text-[10px] text-orange-100 uppercase font-bold">Selected Items</p>
+                    <p class="text-xs font-black text-white" id="floatingCartCount">0 items</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <div class="text-right">
+                    <p class="text-[10px] text-orange-100 uppercase">Total Bill</p>
+                    <p class="text-sm font-black text-white">Rs. <span id="floatingTotalPrice">0</span></p>
+                </div>
+                <div class="bg-white text-daraz-orange px-3 py-1.5 rounded-xl font-extrabold text-xs shadow flex items-center space-x-1">
+                    <span>View Cart</span>
+                    <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                </div>
+            </div>
+        </button>
+    </div>
+
+    <!-- ONBOARDING / LOGIN MODAL -->
+    <div id="onboardingModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl relative overflow-hidden">
+            
+            <div class="text-center mb-4">
+                <div class="w-14 h-14 rounded-2xl daraz-header text-white flex items-center justify-center mx-auto mb-2 shadow-lg shadow-orange-500/20">
+                    <i class="fa-solid fa-crown text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-black text-daraz-textDark">Khushamdeed!</h3>
+                <p class="text-xs text-daraz-orange font-bold tracking-widest mt-0.5">FAIZ E NAGINA GRILL FOOD POINT</p>
+                <p class="text-xs text-daraz-textMuted mt-1">Order start karne ke liye apni details darj karein.</p>
+            </div>
+
+            <form id="onboardingForm" onsubmit="saveUserOnboarding(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-daraz-textDark uppercase mb-1">Aap Ka Naam <span class="text-red-600">*</span></label>
+                    <div class="relative">
+                        <i class="fa-solid fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-daraz-orange text-xs"></i>
+                        <input type="text" id="initName" required placeholder="Maslan: Waleed gillani" class="w-full pl-9 pr-3 py-2.5 bg-gray-50 border border-daraz-border rounded-xl text-xs focus:outline-none focus:border-daraz-orange text-daraz-textDark">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-daraz-textDark uppercase mb-1">Phone Number <span class="text-red-600">*</span></label>
+                    <div class="relative">
+                        <i class="fa-solid fa-phone absolute left-3.5 top-1/2 -translate-y-1/2 text-daraz-orange text-xs"></i>
+                        <input type="tel" id="initPhone" required placeholder="Maslan: 03176407904" class="w-full pl-9 pr-3 py-2.5 bg-gray-50 border border-daraz-border rounded-xl text-xs focus:outline-none focus:border-daraz-orange text-daraz-textDark">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-daraz-textDark uppercase mb-1">Address <span class="text-gray-400 text-[10px] font-normal">(Optional)</span></label>
+                    <div class="relative">
+                        <i class="fa-solid fa-location-dot absolute left-3.5 top-1/2 -translate-y-1/2 text-daraz-orange text-xs"></i>
+                        <input type="text" id="initAddress" placeholder="Maslan: China Scheme Liaqat Chowk..." class="w-full pl-9 pr-3 py-2.5 bg-gray-50 border border-daraz-border rounded-xl text-xs focus:outline-none focus:border-daraz-orange text-daraz-textDark">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full daraz-btn text-white font-extrabold py-3 rounded-xl text-xs shadow-lg transition mt-2 flex items-center justify-center space-x-2">
+                    <span>Menu Dekhein & Order Karein</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <!-- SINGLE CREATOR CREDIT AT THE BOTTOM -->
+            <div class="mt-4 text-center pt-2.5 border-t border-daraz-border">
+                <p class="text-[10.5px] text-daraz-textMuted font-medium">
+                    ⚡ App Creator: <strong class="text-daraz-orange font-bold">Junaid Gillani</strong> | Phone: <strong class="text-daraz-textDark font-bold">03176407904</strong>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- USER PROFILE EDIT MODAL -->
+    <div id="userEditModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl">
+            <div class="flex items-center justify-between mb-3 border-b border-daraz-border pb-2">
+                <h3 class="font-bold text-daraz-textDark text-sm">Profile Details Update Karein</h3>
+                <button onclick="closeUserEditModal()" class="text-gray-400 hover:text-black p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form onsubmit="updateUserInfo(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-medium text-daraz-textMuted mb-1">Naam <span class="text-red-600">*</span></label>
+                    <input type="text" id="editName" required class="w-full px-3 py-2 bg-gray-50 border border-daraz-border rounded-xl text-xs text-daraz-textDark focus:outline-none focus:border-daraz-orange">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-daraz-textMuted mb-1">Phone Number <span class="text-red-600">*</span></label>
+                    <input type="tel" id="editPhone" required class="w-full px-3 py-2 bg-gray-50 border border-daraz-border rounded-xl text-xs text-daraz-textDark focus:outline-none focus:border-daraz-orange">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-daraz-textMuted mb-1">Ghar / Shop ka Address</label>
+                    <textarea id="editAddress" rows="2" placeholder="China Scheme Liaqat Chowk China Road Lahore..." class="w-full px-3 py-2 bg-gray-50 border border-daraz-border rounded-xl text-xs text-daraz-textDark focus:outline-none focus:border-daraz-orange resize-none"></textarea>
+                </div>
+                <div class="pt-2 flex justify-end space-x-2">
+                    <button type="button" onclick="closeUserEditModal()" class="px-4 py-2 bg-gray-100 text-daraz-textMuted rounded-xl text-xs font-medium">Cancel</button>
+                    <button type="submit" class="px-4 py-2 daraz-btn text-white font-bold rounded-xl text-xs">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ORDER HISTORY MODAL -->
+    <div id="historyModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-md rounded-3xl max-h-[88vh] flex flex-col shadow-2xl overflow-hidden">
+            <div class="p-3.5 border-b border-daraz-border flex items-center justify-between bg-daraz-orangeLight">
+                <div class="flex items-center space-x-2 text-daraz-orange">
+                    <i class="fa-solid fa-clock-rotate-left text-lg"></i>
+                    <h3 class="font-bold text-daraz-textDark text-sm" id="historyTitle">Order History</h3>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="toggleTrashView()" id="trashToggleBtn" class="text-xs bg-gray-200 text-gray-700 px-2.5 py-1 rounded-lg font-bold hover:bg-gray-300 transition">
+                        <i class="fa-solid fa-trash-can mr-1"></i> Trash (<span id="trashCount">0</span>)
+                    </button>
+                    <button onclick="closeHistoryModal()" class="text-gray-400 hover:text-black p-1">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-orange-50/60 px-3 py-2 border-b border-daraz-border flex items-center justify-between text-[11px] font-semibold">
+                <span class="text-daraz-textMuted">Data Backup / Restore:</span>
+                <div class="flex items-center space-x-2">
+                    <button onclick="exportHistoryBackup()" class="bg-white text-daraz-orange border border-orange-300 px-2.5 py-1 rounded-lg hover:bg-orange-100 transition flex items-center space-x-1">
+                        <i class="fa-solid fa-download"></i>
+                        <span>Backup</span>
+                    </button>
+                    <label class="bg-daraz-orange text-white px-2.5 py-1 rounded-lg hover:bg-orange-600 transition cursor-pointer flex items-center space-x-1">
+                        <i class="fa-solid fa-upload"></i>
+                        <span>Restore</span>
+                        <input type="file" id="restoreFileInput" onchange="importHistoryBackup(event)" class="hidden" accept=".json">
+                    </label>
+                </div>
+            </div>
+
+            <div id="historyListContainer" class="p-4 overflow-y-auto space-y-3 flex-1 bg-gray-50"></div>
+
+            <div class="p-3 border-t border-daraz-border bg-white flex justify-between items-center text-xs">
+                <span class="text-[10px] text-gray-400">Click slip to view details</span>
+                <button onclick="closeHistoryModal()" class="px-4 py-1.5 bg-gray-100 text-daraz-textDark rounded-xl font-bold">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DIGITAL SLIP VIEW MODAL -->
+    <div id="slipModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl relative border border-daraz-border">
+            <button onclick="closeSlipModal()" class="absolute top-3 right-3 text-gray-400 hover:text-black p-1">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div class="bg-amber-50/40 p-4 rounded-2xl border border-amber-200 text-xs space-y-3 font-mono">
+                <div class="text-center border-b border-dashed border-amber-300 pb-2">
+                    <h3 class="font-extrabold text-sm uppercase text-daraz-orange font-sans">FAIZ E NAGINA</h3>
+                    <p class="text-[10px] font-bold text-gray-600">GRILL FOOD POINT</p>
+                    <p class="text-[9px] text-gray-500 mt-0.5">China Scheme Liaqat Chowk China Road Lahore.</p>
+                </div>
+
+                <div class="flex justify-between text-[11px]">
+                    <span>Receipt: <strong id="slipId">#0000</strong></span>
+                    <span id="slipDate" class="text-gray-500">00/00/0000</span>
+                </div>
+
+                <div class="border-t border-b border-dashed border-amber-300 py-2 space-y-1">
+                    <p><strong>Customer:</strong> <span id="slipCustomer">--</span></p>
+                    <p><strong>Phone:</strong> <span id="slipPhone">--</span></p>
+                    <p><strong>Address:</strong> <span id="slipAddress">--</span></p>
+                </div>
+
+                <div>
+                    <p class="font-bold mb-1 uppercase text-[10px] text-gray-500">Items Ordered:</p>
+                    <div id="slipItemsList" class="space-y-1"></div>
+                </div>
+
+                <div class="border-t border-dashed border-amber-300 pt-2 space-y-1 text-right">
+                    <p>Items Subtotal: <strong>Rs. <span id="slipSubtotal">0</span></strong></p>
+                    <p>Delivery Fee: <strong>Rs. <span id="slipDelivery">50</span></strong></p>
+                    <p class="text-sm font-bold text-daraz-orange">Total Bill: <strong>Rs. <span id="slipTotal">0</span></strong></p>
+                </div>
+
+                <div class="text-center text-[9px] text-gray-400 pt-1">Thank you for ordering with us!</div>
+            </div>
+
+            <div class="mt-4 flex space-x-2">
+                <button onclick="shareSlipWhatsApp()" class="flex-1 bg-green-600 hover:bg-green-500 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center space-x-1 shadow">
+                    <i class="fa-brands fa-whatsapp text-sm"></i>
+                    <span>Share WhatsApp</span>
+                </button>
+                <button onclick="closeSlipModal()" class="px-4 py-2.5 bg-gray-100 text-daraz-textDark font-bold rounded-xl text-xs">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CART & CHECKOUT DRAWER -->
+    <div id="cartModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+        <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+            <div class="p-4 border-b border-daraz-border flex items-center justify-between bg-daraz-orangeLight">
+                <div class="flex items-center space-x-2 text-daraz-orange">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <h3 class="font-black text-daraz-textDark text-base">Your Food Cart</h3>
+                </div>
+                <button onclick="closeCartModal()" class="text-gray-400 hover:text-black p-1">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <div class="p-4 overflow-y-auto space-y-4 flex-1 bg-gray-50">
+                <div class="bg-white border border-daraz-border rounded-2xl p-3 flex items-center justify-between shadow-sm">
+                    <div>
+                        <p class="text-[10px] text-daraz-orange font-bold uppercase">Customer Info</p>
+                        <p class="text-xs font-black text-daraz-textDark" id="cartCustomerName">--</p>
+                        <p class="text-[11px] text-daraz-textMuted" id="cartCustomerPhone">--</p>
+                    </div>
+                    <button onclick="closeCartModal(); openUserEditModal();" class="text-xs text-daraz-orange hover:underline font-bold flex items-center space-x-1">
+                        <i class="fa-solid fa-pen"></i>
+                        <span>Edit</span>
+                    </button>
+                </div>
+
+                <div>
+                    <h4 class="text-[11px] font-bold text-daraz-textMuted uppercase tracking-wider mb-2">Selected Food Items</h4>
+                    <div id="cartItemsList" class="space-y-2"></div>
+                </div>
+
+                <div class="space-y-3 pt-2 border-t border-daraz-border">
+                    <div>
+                        <label class="block text-xs font-bold text-daraz-textDark uppercase mb-1">Delivery Address <span class="text-red-600">*</span></label>
+                        <textarea id="orderAddress" rows="2" required placeholder="China Scheme Liaqat Chowk China Road Lahore..." class="w-full px-3 py-2 bg-white border border-daraz-border rounded-xl text-xs text-daraz-textDark placeholder-gray-400 focus:outline-none focus:border-daraz-orange resize-none"></textarea>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-daraz-border p-3.5 rounded-2xl space-y-1.5 text-xs shadow-sm">
+                    <div class="flex justify-between text-daraz-textMuted">
+                        <span>Items Bill:</span>
+                        <span class="text-daraz-textDark font-semibold">Rs. <span id="billSubtotal">0</span></span>
+                    </div>
+                    <div class="flex justify-between text-daraz-textMuted">
+                        <span>Delivery Bill:</span>
+                        <span class="text-daraz-orange font-semibold">Rs. <span id="billDelivery">50</span></span>
+                    </div>
+                    <div class="border-t border-daraz-border pt-2 flex justify-between text-sm font-bold">
+                        <span class="text-daraz-textDark">Total Bill:</span>
+                        <span class="text-daraz-orange font-black text-base">Rs. <span id="billTotal">50</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-3.5 border-t border-daraz-border bg-white">
+                <button onclick="submitOrderWhatsApp()" class="w-full bg-green-600 hover:bg-green-500 text-white font-extrabold py-3.5 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg transition active:scale-[0.98]">
+                    <i class="fa-brands fa-whatsapp text-lg"></i>
+                    <span>WhatsApp Par Order Bhejen</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ORDER SUCCESS CONFIRMATION MODAL -->
+    <div id="successModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl text-center relative">
+            <div class="w-14 h-14 rounded-full bg-green-100 border border-green-300 flex items-center justify-center mx-auto mb-2 text-green-600 text-2xl">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <h3 class="text-xl font-black text-daraz-textDark">Shukriya!</h3>
+            <p class="text-xs text-daraz-textMuted mt-1">Aap ka order WhatsApp par bhej diya gaya hai.</p>
+            <div id="successReceiptDetails" class="mt-3 p-3 bg-gray-50 border border-daraz-border rounded-2xl text-left text-xs text-daraz-textDark space-y-1"></div>
+            <div class="mt-4">
+                <button onclick="closeSuccessModal()" class="w-full daraz-btn text-white font-bold py-3 rounded-xl text-xs uppercase tracking-wider">Naya Order Karein</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed top-16 right-4 z-50 daraz-btn text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow-xl flex items-center space-x-2 transition-all transform translate-x-80 opacity-0 pointer-events-none">
+        <i class="fa-solid fa-circle-check text-sm"></i>
+        <span id="toastMsg">Item Cart Me Add Ho Gaya!</span>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        const SHOP_ADDRESS = "China Scheme Liaqat Chowk China Road Lahore.";
+
+        const CATEGORY_EMOJI_MAP = {
+            "ALL": "🍽️", "BURGER'S": "🍔", "SHAWARMA'S": "🌯", "PLATER SHAWARMA'S": "🍽️",
+            "PARATHA ROLL": "🫓", "WRAP": "🥙", "SANDWICH": "🥪", "HOT WINGS": "🍗",
+            "SIMPLE FRIES": "🍟", "LOADED FRIES": "🍟", "ADD ON": "🧀"
+        };
+
+        const MENU_DATA = [
+            { id: 1, category: "BURGER'S", name: "Shami Burger", price: 150 },
+            { id: 2, category: "BURGER'S", name: "Double Anda Burger", price: 200 },
+            { id: 3, category: "BURGER'S", name: "Shami Special Burger", price: 200 },
+            { id: 4, category: "BURGER'S", name: "Chicken Lepata Burger", price: 300 },
+            { id: 5, category: "BURGER'S", name: "Zinger Cheese Burger", price: 350 },
+            { id: 6, category: "BURGER'S", name: "Chicken Cheese Burger", price: 350 },
+            { id: 7, category: "BURGER'S", name: "Special Grill Burger", price: 400 },
+            { id: 8, category: "BURGER'S", name: "Tikka Burger", price: 350 },
+            { id: 9, category: "BURGER'S", name: "Patty Burger", price: 250 },
+            { id: 10, category: "BURGER'S", name: "Tower Burger", price: 450 },
+            { id: 11, category: "BURGER'S", name: "Filly Burger", price: 400 },
+            { id: 12, category: "BURGER'S", name: "Chitos Burger", price: 450 },
+            { id: 13, category: "SHAWARMA'S", name: "Chicken Shawarma", price: 200 },
+            { id: 14, category: "SHAWARMA'S", name: "Grill Shawarma", price: 300 },
+            { id: 15, category: "SHAWARMA'S", name: "Zinger Shawarma (S)", price: 220 },
+            { id: 16, category: "SHAWARMA'S", name: "Zinger Shawarma (L)", price: 350 },
+            { id: 17, category: "SHAWARMA'S", name: "Tikka Shawarma", price: 350 },
+            { id: 18, category: "PLATER SHAWARMA'S", name: "Chicken Plater", price: 500 },
+            { id: 19, category: "PLATER SHAWARMA'S", name: "Grill Plater", price: 550 },
+            { id: 20, category: "PLATER SHAWARMA'S", name: "Zinger Plater", price: 500 },
+            { id: 21, category: "PARATHA ROLL", name: "Chicken Paratha", price: 350 },
+            { id: 22, category: "PARATHA ROLL", name: "Grill Paratha", price: 400 },
+            { id: 23, category: "PARATHA ROLL", name: "Zinger Paratha", price: 400 },
+            { id: 24, category: "PARATHA ROLL", name: "Tikka Paratha", price: 350 },
+            { id: 25, category: "WRAP", name: "Chicken Bar B Q Wrap", price: 450 },
+            { id: 26, category: "WRAP", name: "Maxicun Wrap", price: 500 },
+            { id: 27, category: "SANDWICH", name: "Chicken Sandwich", price: 380 },
+            { id: 28, category: "SANDWICH", name: "Grill Sandwich", price: 450 },
+            { id: 29, category: "SANDWICH", name: "Tikka Sandwich", price: 400 },
+            { id: 30, category: "SANDWICH", name: "Zinger Sandwich", price: 450 },
+            { id: 31, category: "SANDWICH", name: "Shami Sandwich", price: 250 },
+            { id: 32, category: "HOT WINGS", name: "Hot Wing (1 Piece)", price: 70 },
+            { id: 33, category: "HOT WINGS", name: "Hot Wing (5 Piece)", price: 300 },
+            { id: 34, category: "SIMPLE FRIES", name: "Small Fries", price: 100 },
+            { id: 35, category: "SIMPLE FRIES", name: "Medium Fries", price: 250 },
+            { id: 36, category: "SIMPLE FRIES", name: "Large Fries", price: 400 },
+            { id: 37, category: "LOADED FRIES", name: "Small Loaded", price: 350 },
+            { id: 38, category: "LOADED FRIES", name: "Medium Loaded", price: 500 },
+            { id: 39, category: "LOADED FRIES", name: "Garlic Fries Small", price: 250 },
+            { id: 40, category: "LOADED FRIES", name: "Garlic Fries Medium", price: 500 },
+            { id: 41, category: "ADD ON", name: "Cheese Slices", price: 70 }
+        ];
+
+        const DELIVERY_CHARGE = 50;
+        const WHATSAPP_NUMBER = "923019750840";
+
+        let currentUser = { name: "", phone: "", address: "" };
+        let activeCategory = "ALL";
+        let cart = {};
+        let orderHistory = [];
+        let trashHistory = [];
+        let showingTrashView = false;
+        let selectedSlip = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadUserData();
+            loadOrderHistoryData();
+            cleanOldTrashItems();
+            renderCategories();
+            renderMenuItems();
+            updateCartUI();
+        });
+
+        function loadUserData() {
+            const savedName = localStorage.getItem('fn_user_name');
+            const savedPhone = localStorage.getItem('fn_user_phone');
+            const savedAddress = localStorage.getItem('fn_user_address');
+
+            if (savedName && savedPhone) {
+                currentUser.name = savedName;
+                currentUser.phone = savedPhone;
+                currentUser.address = savedAddress || "";
+                updateUserUI();
+                document.getElementById('onboardingModal').classList.add('hidden');
+            } else {
+                document.getElementById('initName').value = "";
+                document.getElementById('initPhone').value = "";
+                document.getElementById('initAddress').value = "";
+                document.getElementById('onboardingModal').classList.remove('hidden');
+            }
+        }
+
+        function saveUserOnboarding(e) {
+            e.preventDefault();
+            const name = document.getElementById('initName').value.trim();
+            const phone = document.getElementById('initPhone').value.trim();
+            const address = document.getElementById('initAddress').value.trim();
+
+            if (name && phone) {
+                currentUser.name = name;
+                currentUser.phone = phone;
+                currentUser.address = address;
+
+                localStorage.setItem('fn_user_name', name);
+                localStorage.setItem('fn_user_phone', phone);
+                if (address) localStorage.setItem('fn_user_address', address);
+
+                updateUserUI();
+                document.getElementById('onboardingModal').classList.add('hidden');
+                showToast(`Khushamdeed ${name}!`);
+            }
+        }
+
+        function updateUserUI() {
+            const firstName = currentUser.name ? currentUser.name.split(' ')[0] : 'GUEST';
+            document.getElementById('headerUserName').textContent = firstName.toUpperCase();
+        }
+
+        function openUserEditModal() {
+            document.getElementById('editName').value = currentUser.name || "";
+            document.getElementById('editPhone').value = currentUser.phone || "";
+            document.getElementById('editAddress').value = currentUser.address || "";
+            document.getElementById('userEditModal').classList.remove('hidden');
+        }
+
+        function closeUserEditModal() {
+            document.getElementById('userEditModal').classList.add('hidden');
+        }
+
+        function updateUserInfo(e) {
+            e.preventDefault();
+            const name = document.getElementById('editName').value.trim();
+            const phone = document.getElementById('editPhone').value.trim();
+            const address = document.getElementById('editAddress').value.trim();
+
+            if (name && phone) {
+                currentUser.name = name;
+                currentUser.phone = phone;
+                currentUser.address = address;
+
+                localStorage.setItem('fn_user_name', name);
+                localStorage.setItem('fn_user_phone', phone);
+                if (address) localStorage.setItem('fn_user_address', address);
+
+                updateUserUI();
+                closeUserEditModal();
+                showToast("Profile details update ho gaye!");
+            }
+        }
+
+        function loadOrderHistoryData() {
+            const savedHistory = localStorage.getItem('fn_order_history');
+            const savedTrash = localStorage.getItem('fn_order_trash');
+            if (savedHistory) { try { orderHistory = JSON.parse(savedHistory); } catch(err) { orderHistory = []; } }
+            if (savedTrash) { try { trashHistory = JSON.parse(savedTrash); } catch(err) { trashHistory = []; } }
+            updateTrashBadge();
+        }
+
+        function saveOrderToHistory(orderData) {
+            orderHistory.unshift(orderData);
+            localStorage.setItem('fn_order_history', JSON.stringify(orderHistory));
+        }
+
+        function saveTrashData() {
+            localStorage.setItem('fn_order_trash', JSON.stringify(trashHistory));
+            localStorage.setItem('fn_order_history', JSON.stringify(orderHistory));
+            updateTrashBadge();
+        }
+
+        function cleanOldTrashItems() {
+            const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+            const nowTime = Date.now();
+            trashHistory = trashHistory.filter(item => (nowTime - (item.deletedAt || nowTime)) < THIRTY_DAYS_MS);
+            localStorage.setItem('fn_order_trash', JSON.stringify(trashHistory));
+            updateTrashBadge();
+        }
+
+        function updateTrashBadge() {
+            document.getElementById('trashCount').textContent = trashHistory.length;
+        }
+
+        function moveToTrash(orderId) {
+            const idx = orderHistory.findIndex(o => o.id === orderId);
+            if (idx !== -1) {
+                const item = orderHistory.splice(idx, 1)[0];
+                item.deletedAt = Date.now();
+                trashHistory.unshift(item);
+                saveTrashData();
+                renderHistoryModal();
+                showToast("Order Slip Trash me bhej di gayi!");
+            }
+        }
+
+        function restoreFromTrash(orderId) {
+            const idx = trashHistory.findIndex(o => o.id === orderId);
+            if (idx !== -1) {
+                const item = trashHistory.splice(idx, 1)[0];
+                delete item.deletedAt;
+                orderHistory.unshift(item);
+                saveTrashData();
+                renderHistoryModal();
+                showToast("Order Slip restore ho gayi!");
+            }
+        }
+
+        function permanentDeleteFromTrash(orderId) {
+            if (confirm("Kya aap is slip ko permanently delete karna chahte hain?")) {
+                trashHistory = trashHistory.filter(o => o.id !== orderId);
+                saveTrashData();
+                renderHistoryModal();
+                showToast("Slip permanently delete ho gayi!");
+            }
+        }
+
+        function toggleTrashView() {
+            showingTrashView = !showingTrashView;
+            const btn = document.getElementById('trashToggleBtn');
+            const title = document.getElementById('historyTitle');
+
+            if (showingTrashView) {
+                btn.className = "text-xs bg-red-600 text-white px-2.5 py-1 rounded-lg font-bold transition";
+                title.textContent = "Trash Slips (Auto delete after 30 days)";
+            } else {
+                btn.className = "text-xs bg-gray-200 text-gray-700 px-2.5 py-1 rounded-lg font-bold hover:bg-gray-300 transition";
+                title.textContent = "Order History";
+            }
+            renderHistoryModal();
+        }
+
+        function exportHistoryBackup() {
+            const backupData = { user: currentUser, history: orderHistory, trash: trashHistory, exportDate: new Date().toISOString() };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `FaizENagina_Backup_${new Date().toLocaleDateString().replace(/\//g, '-')}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast("Backup File Download Ho Gayi!");
+        }
+
+        function importHistoryBackup(e) {
+            const fileReader = new FileReader();
+            fileReader.onload = function (event) {
+                try {
+                    const parsedData = JSON.parse(event.target.result);
+                    if (parsedData && Array.isArray(parsedData.history)) {
+                        orderHistory = parsedData.history;
+                        trashHistory = parsedData.trash || [];
+                        if (parsedData.user && parsedData.user.name) {
+                            currentUser = parsedData.user;
+                            localStorage.setItem('fn_user_name', currentUser.name);
+                            localStorage.setItem('fn_user_phone', currentUser.phone);
+                            localStorage.setItem('fn_user_address', currentUser.address);
+                            updateUserUI();
+                        }
+                        saveTrashData();
+                        renderHistoryModal();
+                        showToast("Backup Data Kamiyabi Se Restore Ho Gaya!");
+                    } else { alert("Invalid Backup File Format!"); }
+                } catch (err) { alert("Error reading file!"); }
+            };
+            if (e.target.files[0]) { fileReader.readAsText(e.target.files[0]); }
+        }
+
+        function openHistoryModal() {
+            showingTrashView = false;
+            document.getElementById('historyTitle').textContent = "Order History";
+            document.getElementById('trashToggleBtn').className = "text-xs bg-gray-200 text-gray-700 px-2.5 py-1 rounded-lg font-bold hover:bg-gray-300 transition";
+            renderHistoryModal();
+            document.getElementById('historyModal').classList.remove('hidden');
+        }
+
+        function closeHistoryModal() {
+            document.getElementById('historyModal').classList.add('hidden');
+        }
+
+        function renderHistoryModal() {
+            const container = document.getElementById('historyListContainer');
+            const targetList = showingTrashView ? trashHistory : orderHistory;
+
+            if (targetList.length === 0) {
+                container.innerHTML = `
+                    <div class="py-10 text-center text-daraz-textMuted">
+                        <i class="fa-solid ${showingTrashView ? 'fa-trash-can' : 'fa-receipt'} text-4xl mb-2 text-gray-300"></i>
+                        <p class="text-xs">${showingTrashView ? 'Trash me koi deleted slip nahi hai.' : 'Abhi tak koi pichla order nahi mila.'}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = targetList.map(ord => `
+                <div class="bg-white border border-daraz-border rounded-2xl p-3 space-y-2 text-xs shadow-sm hover:border-daraz-orange transition cursor-pointer" onclick="openSlipModal(${ord.id}, ${showingTrashView})">
+                    <div class="flex items-center justify-between border-b border-daraz-border pb-1.5">
+                        <div class="flex items-center space-x-2">
+                            <span class="bg-orange-100 text-daraz-orange px-2 py-0.5 rounded font-bold text-[10px]">#${ord.id}</span>
+                            <span class="text-[10px] text-daraz-textMuted">${ord.date}</span>
+                        </div>
+                        <span class="text-daraz-orange font-black text-xs">Rs. ${ord.total}</span>
+                    </div>
+
+                    <div class="space-y-0.5">
+                        ${ord.items.map(it => `
+                            <div class="flex justify-between text-daraz-textDark text-[11px]">
+                                <span>${it.name} x${it.qty}</span>
+                                <span class="text-daraz-textMuted font-medium">Rs. ${it.total}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="pt-1.5 text-[10px] text-daraz-textMuted border-t border-daraz-border flex justify-between items-center" onclick="event.stopPropagation()">
+                        <span class="truncate max-w-[170px]"><i class="fa-solid fa-location-dot text-daraz-orange mr-1"></i>${ord.address}</span>
+                        ${showingTrashView ? `
+                            <div class="flex space-x-1">
+                                <button onclick="restoreFromTrash(${ord.id})" class="bg-green-600 text-white px-2 py-1 rounded font-bold text-[10px]">Restore</button>
+                                <button onclick="permanentDeleteFromTrash(${ord.id})" class="bg-red-600 text-white px-2 py-1 rounded font-bold text-[10px]">Delete</button>
+                            </div>
+                        ` : `
+                            <div class="flex space-x-1">
+                                <button onclick="reorderFromHistory(${JSON.stringify(ord.items).replace(/"/g, '&quot;')})" class="daraz-btn text-white px-2 py-1 rounded font-bold text-[10px]">Re-Order</button>
+                                <button onclick="moveToTrash(${ord.id})" class="bg-gray-200 text-gray-700 px-2 py-1 rounded font-bold text-[10px] hover:bg-red-100 hover:text-red-600"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        `}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function reorderFromHistory(items) {
+            cart = {};
+            items.forEach(it => { cart[it.id] = it.qty; });
+            closeHistoryModal();
+            renderMenuItems();
+            updateCartUI();
+            openCartModal();
+            showToast("Items cart me add ho gaye!");
+        }
+
+        function openSlipModal(orderId, isTrash) {
+            const list = isTrash ? trashHistory : orderHistory;
+            const slip = list.find(o => o.id === orderId);
+            if (!slip) return;
+
+            selectedSlip = slip;
+
+            document.getElementById('slipId').textContent = `#${slip.id}`;
+            document.getElementById('slipDate').textContent = slip.date;
+            document.getElementById('slipCustomer').textContent = currentUser.name || "Customer";
+            document.getElementById('slipPhone').textContent = currentUser.phone || "--";
+            document.getElementById('slipAddress').textContent = slip.address;
+
+            document.getElementById('slipItemsList').innerHTML = slip.items.map(it => `
+                <div class="flex justify-between text-[11px]">
+                    <span>${it.name} x${it.qty}</span>
+                    <span>Rs. ${it.total}</span>
+                </div>
+            `).join('');
+
+            document.getElementById('slipSubtotal').textContent = slip.subtotal;
+            document.getElementById('slipDelivery').textContent = slip.delivery;
+            document.getElementById('slipTotal').textContent = slip.total;
+
+            document.getElementById('slipModal').classList.remove('hidden');
+        }
+
+        function closeSlipModal() {
+            document.getElementById('slipModal').classList.add('hidden');
+            selectedSlip = null;
+        }
+
+        function shareSlipWhatsApp() {
+            if (!selectedSlip) return;
+            let msg = `${currentUser.name}\n${currentUser.phone}\n${selectedSlip.address}\n\n`;
+            selectedSlip.items.forEach(it => { msg += `${it.name} ${it.qty}\n`; });
+            msg += `\nItems bill: Rs. ${selectedSlip.subtotal}\nDelivery bill: Rs. ${selectedSlip.delivery}\nTotal bill: Rs. ${selectedSlip.total}\n\n${selectedSlip.date}`;
+            window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        function getCategories() {
+            const cats = ["ALL"];
+            MENU_DATA.forEach(item => { if (!cats.includes(item.category)) cats.push(item.category); });
+            return cats;
+        }
+
+        function renderCategories() {
+            const categories = getCategories();
+            const container = document.getElementById('categoryTabs');
+            container.innerHTML = categories.map(cat => {
+                const isActive = activeCategory === cat;
+                const emoji = CATEGORY_EMOJI_MAP[cat] || "🍽️";
+                return `
+                    <button type="button" onclick="setCategory('${cat.replace(/'/g, "\\'")}')" class="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 border ${isActive ? 'bg-daraz-orange text-white border-daraz-orange shadow' : 'bg-gray-100 text-daraz-textMuted border-daraz-border hover:border-daraz-orange'}">
+                        <span class="text-sm">${emoji}</span>
+                        <span>${cat}</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function setCategory(cat) {
+            activeCategory = cat;
+            renderCategories();
+            renderMenuItems();
+            if (cat !== "ALL") {
+                const targetEl = document.getElementById(`section-${cat.replace(/[^a-zA-Z0-9]/g, '')}`);
+                if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function filterItems() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            document.getElementById('clearSearchBtn').classList.toggle('hidden', query.length === 0);
+            renderMenuItems();
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('clearSearchBtn').classList.add('hidden');
+            renderMenuItems();
+        }
+
+        function renderMenuItems() {
+            const container = document.getElementById('menuSectionsContainer');
+            const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
+
+            let categoriesToDisplay = getCategories().filter(c => c !== "ALL");
+            if (activeCategory !== "ALL") categoriesToDisplay = [activeCategory];
+
+            let hasAnyMatch = false;
+            let htmlContent = "";
+
+            categoriesToDisplay.forEach(cat => {
+                const itemsInCat = MENU_DATA.filter(item => {
+                    return item.category === cat && (item.name.toLowerCase().includes(searchQuery) || cat.toLowerCase().includes(searchQuery));
+                });
+
+                if (itemsInCat.length > 0) {
+                    hasAnyMatch = true;
+                    const sectionId = `section-${cat.replace(/[^a-zA-Z0-9]/g, '')}`;
+                    const emoji = CATEGORY_EMOJI_MAP[cat] || "🍽️";
+
+                    htmlContent += `
+                        <div id="${sectionId}" class="space-y-2">
+                            <div class="flex items-center justify-between px-1">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-base">${emoji}</span>
+                                    <h3 class="font-extrabold text-daraz-textDark text-xs uppercase tracking-wider">${cat}</h3>
+                                </div>
+                                <span class="text-[10px] text-daraz-textMuted font-bold bg-white px-2 py-0.5 rounded-full border border-daraz-border">${itemsInCat.length} Items</span>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2.5">
+                                ${itemsInCat.map(item => {
+                                    const qty = cart[item.id] || 0;
+                                    return `
+                                        <div class="bg-white rounded-2xl border border-daraz-border p-3 shadow-sm flex flex-col justify-between hover:border-orange-300 transition relative">
+                                            <div>
+                                                <div class="w-full h-16 bg-orange-50 rounded-xl flex items-center justify-center text-3xl mb-2">
+                                                    <span>${emoji}</span>
+                                                </div>
+                                                <h4 class="font-bold text-daraz-textDark text-xs leading-tight line-clamp-2 min-h-[32px]">${item.name}</h4>
+                                            </div>
+
+                                            <div class="mt-2 pt-2 border-t border-daraz-border flex items-center justify-between">
+                                                <div>
+                                                    <span class="text-[9px] text-daraz-textMuted block font-medium">Price</span>
+                                                    <span class="text-daraz-orange font-black text-xs">Rs. ${item.price}</span>
+                                                </div>
+
+                                                ${qty === 0 ? `
+                                                    <button onclick="addToCart(${item.id})" class="daraz-btn text-white font-extrabold px-3 py-1.5 rounded-xl text-xs shadow transition active:scale-90 flex items-center space-x-1">
+                                                        <i class="fa-solid fa-plus text-[9px]"></i>
+                                                        <span>Add</span>
+                                                    </button>
+                                                ` : `
+                                                    <div class="flex items-center space-x-1 bg-daraz-orangeLight border border-orange-200 rounded-xl p-0.5">
+                                                        <button onclick="updateQty(${item.id}, -1)" class="w-5 h-5 rounded bg-white text-daraz-textDark flex items-center justify-center text-[10px] border border-daraz-border"><i class="fa-solid fa-minus"></i></button>
+                                                        <span class="font-extrabold text-daraz-orange text-xs px-1">${qty}</span>
+                                                        <button onclick="updateQty(${item.id}, 1)" class="w-5 h-5 rounded daraz-btn text-white flex items-center justify-center text-[10px] font-bold"><i class="fa-solid fa-plus"></i></button>
+                                                    </div>
+                                                `}
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            if (!hasAnyMatch) {
+                container.innerHTML = `
+                    <div class="py-10 text-center text-daraz-textMuted bg-white rounded-2xl border border-daraz-border">
+                        <i class="fa-solid fa-utensils text-3xl text-gray-300 mb-2"></i>
+                        <p class="text-xs font-bold">Koi item nahi mila.</p>
+                        <button onclick="clearSearch(); setCategory('ALL');" class="mt-2 text-xs text-daraz-orange underline font-bold">Tamam menu dekhein</button>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = htmlContent;
+        }
+
+        function addToCart(itemId) {
+            cart[itemId] = (cart[itemId] || 0) + 1;
+            renderMenuItems();
+            updateCartUI();
+            const item = MENU_DATA.find(i => i.id === itemId);
+            showToast(`${item.name} cart me add ho gaya!`);
+        }
+
+        function updateQty(itemId, delta) {
+            if (!cart[itemId]) return;
+            cart[itemId] += delta;
+            if (cart[itemId] <= 0) delete cart[itemId];
+            renderMenuItems();
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const totalItemsCount = Object.values(cart).reduce((sum, q) => sum + q, 0);
+            let subtotal = 0;
+
+            Object.keys(cart).forEach(id => {
+                const item = MENU_DATA.find(i => i.id == id);
+                if (item) subtotal += item.price * cart[id];
+            });
+
+            const floatingCart = document.getElementById('floatingCart');
+            if (totalItemsCount > 0) {
+                floatingCart.classList.remove('translate-y-36');
+            } else {
+                floatingCart.classList.add('translate-y-36');
+                closeCartModal();
+            }
+
+            document.getElementById('navCartBadge').textContent = totalItemsCount;
+            document.getElementById('floatingBadge').textContent = totalItemsCount;
+            document.getElementById('floatingCartCount').textContent = `${totalItemsCount} Item${totalItemsCount > 1 ? 's' : ''}`;
+            document.getElementById('floatingTotalPrice').textContent = subtotal + DELIVERY_CHARGE;
+
+            document.getElementById('billSubtotal').textContent = subtotal;
+            document.getElementById('billDelivery').textContent = DELIVERY_CHARGE;
+            document.getElementById('billTotal').textContent = subtotal + DELIVERY_CHARGE;
+        }
+
+        function openCartModal() {
+            if (Object.keys(cart).length === 0) {
+                showToast("Cart khali hai!");
+                return;
+            }
+
+            document.getElementById('cartCustomerName').textContent = currentUser.name || 'Guest Customer';
+            document.getElementById('cartCustomerPhone').textContent = currentUser.phone || 'Phone not set';
+
+            const orderAddrInput = document.getElementById('orderAddress');
+            if (currentUser.address && !orderAddrInput.value.trim()) {
+                orderAddrInput.value = currentUser.address;
+            }
+
+            renderCartModalItems();
+            document.getElementById('cartModal').classList.remove('hidden');
+        }
+
+        function closeCartModal() {
+            document.getElementById('cartModal').classList.add('hidden');
+        }
+
+        function renderCartModalItems() {
+            const container = document.getElementById('cartItemsList');
+            container.innerHTML = Object.keys(cart).map(id => {
+                const item = MENU_DATA.find(i => i.id == id);
+                const qty = cart[id];
+                const itemTotal = item.price * qty;
+
+                return `
+                    <div class="bg-white border border-daraz-border p-2.5 rounded-xl flex items-center justify-between shadow-sm">
+                        <div>
+                            <p class="text-xs font-bold text-daraz-textDark">${item.name}</p>
+                            <p class="text-[11px] text-daraz-textMuted">Rs. ${item.price} x ${qty} = <span class="text-daraz-orange font-bold">Rs. ${itemTotal}</span></p>
+                        </div>
+
+                        <div class="flex items-center space-x-1.5 bg-daraz-orangeLight border border-orange-200 rounded-lg p-1">
+                            <button onclick="updateQty(${item.id}, -1); renderCartModalItems();" class="w-5 h-5 rounded bg-white text-daraz-textDark flex items-center justify-center text-[10px] font-bold border border-daraz-border"><i class="fa-solid fa-minus"></i></button>
+                            <span class="font-bold text-daraz-orange text-xs px-1">${qty}</span>
+                            <button onclick="updateQty(${item.id}, 1); renderCartModalItems();" class="w-5 h-5 rounded daraz-btn text-white flex items-center justify-center text-[10px] font-bold"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function submitOrderWhatsApp() {
+            const address = document.getElementById('orderAddress').value.trim();
+
+            if (!address) {
+                showToast("Delivery Address zaroori hai!");
+                document.getElementById('orderAddress').focus();
+                return;
+            }
+
+            if (!currentUser.address || currentUser.address !== address) {
+                currentUser.address = address;
+                localStorage.setItem('fn_user_address', address);
+                updateUserUI();
+            }
+
+            let itemsListForHistory = [];
+            let itemsTextList = "";
+            let subtotal = 0;
+
+            Object.keys(cart).forEach((id) => {
+                const item = MENU_DATA.find(i => i.id == id);
+                const qty = cart[id];
+                const total = item.price * qty;
+                subtotal += total;
+
+                itemsListForHistory.push({ id: item.id, name: item.name, qty: qty, price: item.price, total: total });
+                itemsTextList += `${item.name} ${qty}\n`;
+            });
+
+            const totalPayable = subtotal + DELIVERY_CHARGE;
+            const now = new Date();
+            const dateFormatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+            const timeFormatted = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+
+            const orderObj = {
+                id: Math.floor(1000 + Math.random() * 9000),
+                date: `${dateFormatted} - ${timeFormatted}`,
+                items: itemsListForHistory,
+                subtotal: subtotal,
+                delivery: DELIVERY_CHARGE,
+                total: totalPayable,
+                address: address
+            };
+            saveOrderToHistory(orderObj);
+
+            let msg = `${currentUser.name}\n${currentUser.phone}\n${address}\n\n${itemsTextList}\nItems bill: Rs. ${subtotal}\nDelivery bill: Rs. ${DELIVERY_CHARGE}\nTotal bill: Rs. ${totalPayable}\n\n${dateFormatted} - ${timeFormatted}`;
+
+            document.getElementById('successReceiptDetails').innerHTML = `
+                <p class="font-bold text-daraz-orange mb-1 border-b border-daraz-border pb-1">Order #${orderObj.id} Summary:</p>
+                <p><strong>Customer:</strong> ${currentUser.name} (${currentUser.phone})</p>
+                <p><strong>Address:</strong> ${address}</p>
+                <p><strong>Total Bill:</strong> <span class="text-daraz-orange font-bold">Rs. ${totalPayable}</span></p>
+                <p class="text-[10px] text-daraz-textMuted mt-1">Time: ${dateFormatted} - ${timeFormatted}</p>
+            `;
+
+            window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
+            closeCartModal();
+            document.getElementById('orderAddress').value = currentUser.address || '';
+            document.getElementById('successModal').classList.remove('hidden');
+        }
+
+        function closeSuccessModal() {
+            cart = {};
+            renderMenuItems();
+            updateCartUI();
+            document.getElementById('successModal').classList.add('hidden');
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = msg;
+            toast.classList.remove('translate-x-80', 'opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('translate-x-80', 'opacity-0', 'pointer-events-none');
+            }, 2800);
+        }
+    </script>
+
+    <!-- AUTOMATIC SERVICE WORKER REGISTER SCRIPT -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('sw.js')
+            .then(() => console.log('Service Worker Registered!'))
+            .catch((err) => console.log('Service Worker Registration Failed:', err));
+        });
+      }
+    </script>
+</body>
+</html>
